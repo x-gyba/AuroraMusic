@@ -1,14 +1,22 @@
 <?php
+
+declare(strict_types=1);
+
+namespace Models;
+
 require_once __DIR__ . '/../config/database.php';
 
 use Config\Database;
 use PDO;
-use Exception; // Necessário para lançar exceções
+use PDOException;
+
+// PDO e Exception são globais, mas importamos explicitamente para evitar ambiguidades em namespace
+
 
 class Visitantes
 {
     private PDO $db;
-    private $tabela = 'visitantes'; // Definido para uso no método excluir
+    private string $tabela = 'visitantes'; // Definido para uso no método excluir
 
     public function __construct()
     {
@@ -19,7 +27,7 @@ class Visitantes
     /* ============================================================
        REGISTRO DE VISITA
     ============================================================ */
-    public function registrarVisita($pagina = "desconhecida")
+    public function registrarVisita(string $pagina = "desconhecida"): bool
     {
         $sql = "INSERT INTO visitantes 
                 (ip_address, pagina, navegador, sistema_operacional, data_acesso)
@@ -38,13 +46,13 @@ class Visitantes
        CONTADORES
     ============================================================ */
 
-    public function countHoje()
+    public function countHoje(): int
     {
         $sql = "SELECT COUNT(*) FROM visitantes WHERE DATE(data_acesso) = CURDATE()";
         return (int)$this->db->query($sql)->fetchColumn();
     }
 
-    public function countMes()
+    public function countMes(): int
     {
         $sql = "SELECT COUNT(*) FROM visitantes
                 WHERE MONTH(data_acesso) = MONTH(CURRENT_DATE())
@@ -52,7 +60,7 @@ class Visitantes
         return (int)$this->db->query($sql)->fetchColumn();
     }
 
-    public function countTotal()
+    public function countTotal(): int
     {
         $sql = "SELECT COUNT(*) FROM visitantes";
         return (int)$this->db->query($sql)->fetchColumn();
@@ -62,7 +70,7 @@ class Visitantes
        FILTROS + LISTAGEM
     ============================================================ */
 
-    public function filtrar($dataInicio = null, $dataFim = null, $limit = 50, $offset = 0)
+    public function filtrar(?string $dataInicio = null, ?string $dataFim = null, int $limit = 50, int $offset = 0): array
     {
         $where = " WHERE 1=1 ";
         $params = [];
@@ -96,7 +104,7 @@ class Visitantes
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function totalFiltrado($dataInicio = null, $dataFim = null)
+    public function totalFiltrado(?string $dataInicio = null, ?string $dataFim = null): int
     {
         $where = " WHERE 1=1 ";
         $params = [];
@@ -125,7 +133,7 @@ class Visitantes
        GRÁFICOS
     ============================================================ */
 
-    public function graficoPorData($inicio, $fim)
+    public function graficoPorData(string $inicio, string $fim): array
     {
         $sql = "
             SELECT DATE(data_acesso) as dia, COUNT(*) AS total
@@ -167,8 +175,8 @@ class Visitantes
             // Retorna TRUE se uma linha foi afetada (registro excluído)
             return $stmt->rowCount() > 0;
             
-        } catch (Exception $e) {
-            throw new Exception("Erro de PDO ao excluir registro: " . $e->getMessage());
+        } catch (PDOException $e) {
+            throw new PDOException("Erro de PDO ao excluir registro: " . $e->getMessage());
         }
     }
 
@@ -176,7 +184,7 @@ class Visitantes
        DETECÇÃO DE IP / NAVEGADOR / SO
     ============================================================ */
 
-    private function getIpAddress()
+    private function getIpAddress(): string
     {
         // Prioriza proxies confiáveis, mas valida o IP
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR']
@@ -196,7 +204,7 @@ class Visitantes
         return '0.0.0.0';
     }
 
-    private function getBrowser()
+    private function getBrowser(): string
     {
         $ua = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
 
@@ -211,7 +219,7 @@ class Visitantes
         return 'Desconhecido';
     }
 
-    private function getOS()
+    private function getOS(): string
     {
         $ua = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
 

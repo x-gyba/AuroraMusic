@@ -15,26 +15,46 @@ class LoginModal {
     cacheElements() {
         this.modal = document.getElementById("loginModal");
         this.overlay = document.getElementById("loginOverlay");
-        this.closeBtn = document.getElementById("closeLoginModal");
+        this.closeBtn = document.getElementById("closeModal");
         this.loginTrigger = document.getElementById("loginTrigger");
+        this.footerLoginTrigger = document.getElementById("footerLoginTrigger");
+        this.mobileNavTrigger = document.getElementById("loginMobileTrigger");
         this.form = document.getElementById("loginForm");
         this.message = document.getElementById("formMessage");
         this.togglePassword = document.getElementById("togglePassword");
-        this.passwordInput = document.getElementById("senha");
-        this.usernameInput = document.getElementById("usuario");
-        this.loginButton = document.getElementById("loginBtn");
+        this.passwordInput = document.getElementById("password");
+        this.usernameInput = document.getElementById("username");
+        this.loginButton = document.getElementById("btnLogin");
     }
 
     init() {
         // ABRIR: Uso de verificação estrita de ID
         if (this.loginTrigger) {
             this.loginTrigger.addEventListener('click', (e) => {
-                // Só abre se o elemento clicado for o gatilho de login
                 if (e.currentTarget.id === 'loginTrigger') {
                     e.preventDefault();
                     e.stopPropagation();
                     this.open();
                 }
+            });
+        }
+
+        // ABRIR: Link de login do footer (mobile)
+        if (this.footerLoginTrigger) {
+            this.footerLoginTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // marca origem para deslocar o modal um pouco mais baixo
+                this.open('footer');
+            });
+        }
+
+        // gatilho na barra inferior mobile
+        if (this.mobileNavTrigger) {
+            this.mobileNavTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.open();
             });
         }
 
@@ -75,11 +95,18 @@ class LoginModal {
         }
     }
 
-    open() {
+    open(source) {
         this.isModalOpen = true;
         this.modal.classList.add("active");
         if (this.overlay) this.overlay.classList.add("active");
         
+        // se veio do rodapé, deslocar para baixo
+        if (source === 'footer') {
+            this.modal.style.top = '65%';
+        } else {
+            this.modal.style.top = '';
+        }
+
         this.modal.style.display = "flex";
         document.body.style.overflow = "hidden";
         
@@ -95,6 +122,8 @@ class LoginModal {
             if (!this.isModalOpen) {
                 this.modal.style.display = "none";
                 document.body.style.overflow = "";
+                // remove ajuste de posição personalizado
+                this.modal.style.top = '';
             }
         }, 300);
 
@@ -109,9 +138,43 @@ class LoginModal {
     }
 
     async handleLogin() {
+        const usuario = this.usernameInput?.value.trim() || '';
+        const senha = this.passwordInput?.value || '';
+
+        if (!usuario || !senha) {
+            this.showMessage('Preencha todos os campos.', 'error');
+            return;
+        }
+
         this.setLoading(true);
-        // ... lógica do fetch igual ao anterior ...
-        this.setLoading(false);
+        this.showMessage('', '');
+
+        try {
+            const formData = new FormData();
+            formData.append('usuario', usuario);
+            formData.append('senha', senha);
+
+            const response = await fetch('controllers/AuthController.php?auth_action=login', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showMessage('✓ Login realizado com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1500);
+            } else {
+                this.showMessage(data.message || 'Erro ao fazer login.', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Erro de conexão. Tente novamente.', 'error');
+        } finally {
+            this.setLoading(false);
+        }
     }
 
     showMessage(text, type) {

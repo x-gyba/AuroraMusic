@@ -20,7 +20,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Music.php';
 
 try {
-    $musicModel = new Music();
+    $musicModel = new \Models\Music();
     $userId = $_SESSION['id'];
 
     // Busca todas as músicas do usuário
@@ -39,6 +39,27 @@ try {
             $m['caminho_web'] = '';
         }
 
+        // Ajusta caminho web da imagem/cover (se existir)
+        if (isset($m['caminho_imagem']) && !empty($m['caminho_imagem'])) {
+            $m['cover_web'] = '../' . $m['caminho_imagem'];
+        } else {
+            $m['cover_web'] = null;
+        }
+
+        // Verifica se o arquivo físico ainda existe; se não existir, remove registro do DB
+        $possiblePath = __DIR__ . '/../' . ltrim($m['caminho_arquivo'] ?? '', './');
+        if (empty($m['caminho_arquivo']) || !file_exists($possiblePath)) {
+            // remove do banco para evitar registros órfãos
+            if (isset($m['id'])) {
+                try {
+                    $musicModel->delete((int)$m['id'], $userId);
+                } catch (Exception $e) {
+                    error_log('Erro ao remover registro órfão: ' . $e->getMessage());
+                }
+            }
+            continue; // pula para próxima música
+        }
+
         // ============================================
         // CORREÇÃO: Garante nome de exibição correto
         // Prioridade: nome_exibicao > nome_arquivo (sem ext) > basename
@@ -46,16 +67,16 @@ try {
         $nomeExibicao = isset($m['nome_exibicao']) ? trim($m['nome_exibicao']) : '';
         $nomeArquivo = isset($m['nome_arquivo']) ? trim($m['nome_arquivo']) : '';
         
-        if (!empty($nomeExibicao)) {
-            // Remove extensão se o nome_exibicao tiver .mp3
-            $m['display_name'] = preg_replace('/\.mp3$/i', '', $nomeExibicao);
-        } elseif (!empty($nomeArquivo)) {
-            // Usa nome do arquivo sem extensão
-            $m['display_name'] = pathinfo($nomeArquivo, PATHINFO_FILENAME);
-        } else {
-            // Fallback: basename do caminho sem extensão
-            $m['display_name'] = pathinfo(basename($m['caminho_arquivo']), PATHINFO_FILENAME);
-        }
+            if (!empty($nomeExibicao)) {
+                // Se houver um nome de exibição definido pelo usuário, usa ele (mantendo extensão)
+                $m['display_name'] = $nomeExibicao;
+            } elseif (!empty($nomeArquivo)) {
+                // Mostra o nome original do arquivo conforme enviado (com extensão)
+                $m['display_name'] = $nomeArquivo;
+            } else {
+                // Fallback: mostra o basename do caminho armazenado (pode ser o nome criptografado)
+                $m['display_name'] = basename($m['caminho_arquivo']);
+            }
         
         // Garante que nome_exibicao também está limpo para o frontend
         $m['nome_exibicao'] = $m['display_name'];

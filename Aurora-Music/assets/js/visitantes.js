@@ -58,11 +58,9 @@ async function carregarGrafico(dataInicio, dataFim) {
 
         if (data.success) {
             renderizarGrafico(data.dados);
-        } else {
-            console.error('Erro ao carregar gráfico:', data.message);
         }
     } catch (error) {
-        console.error('Erro:', error);
+        // Erro silencioso
     }
 }
 
@@ -140,12 +138,11 @@ async function carregarTabelaVisitantes(dataInicio, dataFim, pagina) {
             renderizarPaginacao(data.total, pagina);
         } else {
             document.getElementById('tabelaVisitantes').innerHTML = 
-                '<tr><td colspan="6" style="text-align: center;">Erro ao carregar dados</td></tr>'; // Alterado colspan para 6
+                '<tr><td colspan="6" style="text-align: center;">Erro ao carregar dados</td></tr>';
         }
     } catch (error) {
-        console.error('Erro:', error);
         document.getElementById('tabelaVisitantes').innerHTML = 
-            '<tr><td colspan="6" style="text-align: center;">Erro ao carregar dados</td></tr>'; // Alterado colspan para 6
+            '<tr><td colspan="6" style="text-align: center;">Erro ao carregar dados</td></tr>';
     }
 }
 
@@ -246,7 +243,6 @@ async function excluirRegistro(id) {
             alert(`Erro ao excluir registro: ${result.message}`);
         }
     } catch (error) {
-        console.error('Erro de rede/servidor:', error);
         alert('Erro de conexão ao tentar excluir o registro.');
     }
 }

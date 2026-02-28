@@ -67,20 +67,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Abrir cadastro de músicas em nova janela
-    // Não precisa de verificação de elemento, é uma função.
+    // Abrir cadastro de músicas - navegação segura
     window.abrirCadastroMusicas = function(e) {
-        e.preventDefault();
-        window.open('upload.php', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
+        // Garante que apenas uma janela seja aberta
+        window.location.replace('upload.php');
+        return false;
     };
 
-    // Função de Logout
+    // Função de Logout - com confirmação
     // Não precisa de verificação de elemento, é uma função.
-    window.realizarLogout = function() {
-        if (confirm('Deseja realmente sair do sistema?')) {
-            // Redireciona o usuário para a página de logout
-            window.location.href = 'logout.php';
+    window.realizarLogout = function(e) {
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
         }
+        if (confirm('Deseja realmente sair do sistema?')) {
+            // Usa replace para evitar múltiplas abas
+            window.location.replace('logout.php');
+        }
+        return false;
     };
 
     // Form de Clientes
@@ -95,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const endereco = document.getElementById('enderecoCliente').value;
 
             // Lógica de salvamento (simulação)
-            console.log(`Dados do Cliente para salvar: ${nome}, ${email}`);
+            // Dados capturados para salvamento
             alert(`Cliente cadastrado com sucesso!\n\nNome: ${nome}\nE-mail: ${email}\nTelefone: ${telefone}`);
 
             // Limpa o formulário

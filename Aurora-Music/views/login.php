@@ -6,11 +6,11 @@
 <div class="login-modal" id="loginModal">
     <div class="login-modal-content">
         <button class="login-close" id="closeModal" type="button" aria-label="Fechar modal">
-            <i class="fas fa-times"></i>
+            <i class="bx bx-x"></i>
         </button>
 
         <div class="login-header">
-            <i class="fas fa-user-shield"></i>
+            <i class="bx bx-shield-quarter"></i>
             <h2>Login</h2>
             <p>Painel Administrativo</p>
         </div>
@@ -18,7 +18,7 @@
         <form id="loginForm" class="login-form-modal" method="post" autocomplete="off">
             <div class="form-group">
                 <label for="username">
-                    <i class="fas fa-user"></i>
+                    <i class="bx bx-user"></i>
                     Usuário
                 </label>
                 <input
@@ -33,10 +33,10 @@
 
             <div class="form-group">
                 <label for="password">
-                    <i class="fas fa-lock"></i>
+                    <i class="bx bx-lock-alt"></i>
                     Senha
                 </label>
-                <div class="password-input-wrapper">
+                <div class="password-field"> 
                     <input
                         type="password"
                         id="password"
@@ -45,18 +45,18 @@
                         required
                         autocomplete="current-password"
                     >
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar senha">
-                        <i class="fas fa-eye"></i>
+                    <button type="button" id="togglePassword" aria-label="Mostrar senha">
+                        <i class="bx bx-show"></i>
                     </button>
                 </div>
             </div>
 
             <div class="form-message" id="formMessage"></div>
 
-            <button type="submit" class="btn-login" id="btnLogin">
+            <button type="submit" id="btnLogin">
                 <span class="btn-text">Entrar</span>
                 <span class="btn-loader" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <i class="bx bx-loader-alt bx-spin"></i>
                 </span>
             </button>
         </form>

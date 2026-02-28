@@ -33,7 +33,7 @@ $usuario = $_SESSION['usuario'] ?? 'Usuário';
                 <div class="user-name"><?php echo htmlspecialchars($usuario); ?></div>
             </div>
         </div>
-        <a href="../controllers/AuthController.php?auth_action=logout" class="logout-btn">Sair</a>
+        <a href="logout.php" class="logout-btn">Sair</a>
     </div>
 
     <div class="container">
@@ -63,6 +63,17 @@ $usuario = $_SESSION['usuario'] ?? 'Usuário';
                         maxlength="100"
                     >
                     <p class="file-info">Se deixar vazio, usaremos o nome do arquivo</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="coverImage">Capa da Música (opcional)</label>
+                    <input 
+                        type="file" 
+                        id="coverImage" 
+                        name="coverImage" 
+                        accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
+                    >
+                    <p class="file-info">Tamanho máximo: 5MB (JPG, PNG, GIF, WebP)</p>
                 </div>
 
                 <div id="progressContainer" class="progress-container">

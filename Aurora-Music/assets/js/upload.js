@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const uploadForm = document.getElementById('uploadForm');
     const musicFileInput = document.getElementById('musicFile');
+    const coverImageInput = document.getElementById('coverImage');
     const displayNameInput = document.getElementById('displayName');
     const submitBtn = document.getElementById('submitBtn');
     const progressContainer = document.getElementById('progressContainer');
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(() => { window.location.href = '../index.php'; }, 2000);
             }
         } catch (err) {
-            console.error('Erro ao verificar autenticação:', err);
+            // Erro silencioso
         }
     }
 
@@ -52,8 +53,29 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Validar imagem se fornecida
+        let coverImageFile = null;
+        if (coverImageInput && coverImageInput.files.length > 0) {
+            coverImageFile = coverImageInput.files[0];
+            const allowedImgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const imgExt = coverImageFile.name.split('.').pop().toLowerCase();
+            
+            if (!allowedImgExts.includes(imgExt)) {
+                showMessage('Imagem deve ser JPG, PNG, GIF ou WebP.', 'error');
+                return;
+            }
+            
+            if (coverImageFile.size > 5 * 1024 * 1024) {
+                showMessage('Imagem muito grande. Máximo: 5MB', 'error');
+                return;
+            }
+        }
+
         const formData = new FormData();
         formData.append('musicFile', file);
+        if (coverImageFile) {
+            formData.append('coverImage', coverImageFile);
+        }
         const displayName = displayNameInput.value.trim();
         if (displayName) formData.append('displayName', displayName);
 
@@ -79,19 +101,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     resp = JSON.parse(xhr.responseText);
                     if (xhr.status === 200 && resp.success) {
-                        showMessage('Música enviada com sucesso!', 'success');
+                        // usa mensagem proveniente do backend, caso exista
+                        const msg = resp.message || 'MP3 enviado com sucesso!';
+                        showMessage(msg, 'success');
                         uploadForm.reset();
                         loadMusicList();
                     } else if (resp.message && resp.message.includes('autenticado')) {
                         showMessage('Sessão expirada. Redirecionando...', 'error');
                         setTimeout(() => { window.location.href = '../index.php'; }, 2000);
                     } else {
-                        showMessage(resp.message || 'Erro no servidor.', 'error');
+                        const msg = resp.message || 'Falha ao enviar o MP3. Tente novamente.';
+                        showMessage(msg, 'error');
                     }
                 } catch (err) {
                     // Resposta do servidor não era JSON válida, trata como erro
                     console.error('Resposta do servidor inválida:', xhr.responseText);
-                    showMessage('Resposta inválida do servidor. Verifique o console.', 'error');
+                    showMessage('Falha ao enviar o MP3. Tente novamente.', 'error');
                 }
             });
 
@@ -129,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'GET', credentials: 'include'
             });
             const data = await resp.json();
-            console.log('=== DADOS DO SERVIDOR ===', data);
 
             if (data.success && data.musics && data.musics.length > 0) {
                 displayMusicList(data.musics);
@@ -140,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 musicListContainer.innerHTML = '<p class="no-music">Nenhuma música encontrada.</p>';
             }
         } catch (err) {
-            console.error('Erro:', err);
             musicListContainer.innerHTML = '<p class="error">Erro ao carregar músicas.</p>';
         }
     }
@@ -158,9 +181,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const nomeArq = m.nome_arquivo || '';
+            // Define imagem: cover se existir, senão imagem padrão
+            const coverImg = m.cover_web || '../assets/images/cover.png';
 
             return `
                 <div class="music-item" data-id="${m.id}">
+                    <div class="music-cover">
+                        <img src="${escapeHtml(coverImg)}" alt="Capa da música" class="cover-thumbnail" />
+                    </div>
                     <div class="music-info">
                         <h3>${escapeHtml(titulo)}</h3>
                         <p class="music-filename">Arquivo: ${escapeHtml(nomeArq)}</p>

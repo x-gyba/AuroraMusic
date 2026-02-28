@@ -1,4 +1,6 @@
 <?php
+namespace Models;
+
 require_once 'config/database.php';
 
 use Config\Database;

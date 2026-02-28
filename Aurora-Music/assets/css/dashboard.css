@@ -374,7 +374,12 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 480px) {
+            :root {
+                --sidebar-width: 0;
+                --header-height: 60px;
+            }
+
             .dashboard-container {
                 grid-template-columns: 1fr;
                 grid-template-areas:
@@ -386,6 +391,87 @@
                 position: fixed;
                 left: 0;
                 top: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+
+            .dashboard-container.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .header {
+                padding: 0 0.75rem;
+            }
+
+            .menu-toggle {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .user-details {
+                display: none;
+            }
+
+            .welcome-card {
+                padding: 1rem;
+            }
+
+            .welcome-card h1 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-card p {
+                font-size: 0.875rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .stat-info h3 {
+                font-size: 0.9rem;
+            }
+
+            .stat-info p {
+                font-size: 1rem;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            :root {
+                --sidebar-width: 0;
+                --header-height: 65px;
+            }
+
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "main";
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 280px;
                 height: 100vh;
                 z-index: 1000;
                 transform: translateX(-100%);
@@ -404,7 +490,7 @@
             }
 
             .main-content {
-                padding: 1rem;
+                padding: 1.5rem;
             }
 
             .user-details {
@@ -412,7 +498,55 @@
             }
 
             .cards-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .stat-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.5rem;
+            }
+
+            .stat-icon {
+                margin: 0 auto;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            :root {
+                --sidebar-width: 240px;
+            }
+
+            .dashboard-container {
+                grid-template-columns: var(--sidebar-width) 1fr;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .sidebar-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .nav-link {
+                padding: 0.875rem 1.5rem;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .dashboard-container {
+                grid-template-columns: var(--sidebar-width) 1fr;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             }
         }
 
@@ -430,6 +564,16 @@
 
         .sidebar-overlay.active {
             display: block;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-overlay {
+                display: none;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
         }
     /* ============================================================
    ESTILOS PARA SEÇÃO DE VISITANTES
@@ -464,13 +608,37 @@
 }
 
 /* Responsividade dos cards de visitantes */
-@media (max-width: 768px) {
+@media (max-width: 480px) {
     #visitantes .cards-grid {
         grid-template-columns: 1fr;
     }
     
     #formFiltroVisitantes > div {
         grid-template-columns: 1fr !important;
+    }
+
+    #tabelaVisitantes {
+        font-size: 0.75rem;
+    }
+
+    #paginacaoVisitantes .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    #visitantes .cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #formFiltroVisitantes > div {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    #paginacaoVisitantes .btn {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 }
 
@@ -491,10 +659,52 @@
     background-color: rgba(59, 130, 246, 0.05);
 }
 
+#tabelaVisitantes {
+    width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    #tabelaVisitantes {
+        font-size: 0.8rem;
+    }
+
+    #tabelaVisitantes th,
+    #tabelaVisitantes td {
+        padding: 8px 4px;
+    }
+
+    .info-table thead {
+        display: none;
+    }
+
+    .info-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .info-table tbody td {
+        display: block;
+        text-align: right;
+        padding: 0.5rem 0;
+        border: none;
+    }
+
+    .info-table tbody td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+    }
+}
+
 /* Estilos para paginação */
 #paginacaoVisitantes .btn {
     padding: 8px 16px;
     font-size: 14px;
+    margin: 4px;
 }
 
 #paginacaoVisitantes .btn:disabled {

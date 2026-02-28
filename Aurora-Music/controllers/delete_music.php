@@ -45,9 +45,9 @@ try {
     $musicId = intval($input['id']);
     $userId = $_SESSION['id'];
     
-    $musicModel = new Music();
+    $musicModel = new \Models\Music();
     
-    // Deleta a música
+    // Deleta a música (incluindo arquivos físicos)
     if ($musicModel->delete($musicId, $userId)) {
         echo json_encode([
             'success' => true,

@@ -1,18 +1,17 @@
 <?php
 session_start();
 
-// Registra TODAS as visitas do site (antes de verificar login)
-// Isso captura tanto visitantes públicos quanto usuários logados
+// Importa as classes usadas pelo dashboard usando os caminhos corretos
+require_once __DIR__ . '/../models/Visitantes.php';
+require_once __DIR__ . '/../models/Music.php';
+
+// Registra a visita à página (público ou usuário)
 try {
-    require_once __DIR__ . '/../models/Visitantes.php';
-    $visitantesTracker = new Visitantes();
-    
-    // Detecta a página atual
+    // CORREÇÃO: Utilizando o namespace Models definido no arquivo do modelo
+    $visitantesTracker = new \Models\Visitantes(); 
     $paginaAtual = basename($_SERVER['PHP_SELF'], '.php');
-    
-    // Registra a visita
     $visitantesTracker->registrarVisita($paginaAtual);
-    unset($visitantesTracker);
+    $visitantesTracker = null; // Boa prática para liberar o objeto
 } catch (Exception $e) {
     error_log("Erro ao registrar visita: " . $e->getMessage());
 }
@@ -34,13 +33,14 @@ $dataLogin = date('d/m/Y H:i', $loginTime);
 $musicsCount = 0;
 $musicsUsedMb = 0;
 try {
-    require_once __DIR__ . '/../models/Music.php';
-    $musicModel = new Music();
+    // CORREÇÃO: Utilizando o namespace Models
+    $musicModel = new \Models\Music();
     $stats = $musicModel->getUserStats($idUsuario);
     $musicsCount = isset($stats['total_musicas']) ? (int)$stats['total_musicas'] : 0;
     $musicsUsedMb = isset($stats['espaco_usado']) ? round($stats['espaco_usado'] / (1024*1024), 2) : 0;
 } catch (Exception $e) {
-    // se algo falhar, manter valores 0
+    error_log("Erro ao carregar estatísticas de músicas: " . $e->getMessage());
+    // Mantém valores 0 em caso de erro
 }
 
 // Carrega estatísticas de visitantes do banco de dados
@@ -48,13 +48,14 @@ $visitantesHoje = 0;
 $visitantesMes = 0;
 $visitantesTotal = 0;
 try {
-    require_once __DIR__ . '/../models/Visitantes.php';
-    $visitantesModel = new Visitantes();
+    // CORREÇÃO: Utilizando o namespace Models
+    $visitantesModel = new \Models\Visitantes();
     $visitantesHoje = $visitantesModel->countHoje();
     $visitantesMes = $visitantesModel->countMes();
     $visitantesTotal = $visitantesModel->countTotal();
 } catch (Exception $e) {
-    // se algo falhar, manter valores 0
+    error_log("Erro ao carregar estatísticas de visitantes: " . $e->getMessage());
+    // Mantém valores 0 em caso de erro
 }
 ?>
 <!DOCTYPE html>
@@ -79,43 +80,43 @@ try {
             <nav>
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a class="nav-link active" data-section="home">
+                        <a href="javascript:void(0)" class="nav-link active" data-section="home">
                             <i class="fas fa-home"></i>
                             <span>Início</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-section="clientes">
+                        <a href="javascript:void(0)" class="nav-link" data-section="clientes">
                             <i class="fas fa-users"></i>
                             <span>Cadastro de Clientes</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-section="musicas" onclick="abrirCadastroMusicas(event)">
+                        <a href="upload.php" class="nav-link">
                             <i class="fas fa-compact-disc"></i>
                             <span>Cadastro de Músicas</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-section="pagamentos">
+                        <a href="javascript:void(0)" class="nav-link" data-section="pagamentos">
                             <i class="fas fa-dollar-sign"></i>
                             <span>Pagamentos</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-section="visitantes">
+                        <a href="javascript:void(0)" class="nav-link" data-section="visitantes">
                             <i class="fas fa-chart-line"></i>
                             <span>Estatísticas de Visitantes</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-section="login-info">
+                        <a href="javascript:void(0)" class="nav-link" data-section="login-info">
                             <i class="fas fa-info-circle"></i>
                             <span>Informações de Login</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link danger" onclick="realizarLogout()">
+                        <a href="logout.php" class="nav-link danger">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Sair</span>
                         </a>

@@ -35,13 +35,58 @@ if (!class_exists('Models\Music')) {
 $todasMusicas = [];
 $erroMusicas  = null;
 
+/**
+ * Escaneia a pasta music/ e retorna todos os arquivos MP3
+ */
+function obterMusicasDoPasta(): array {
+    $musicDir = __DIR__ . '/music/';
+    $musicas = [];
+    
+    if (!is_dir($musicDir)) {
+        return [];
+    }
+    
+    try {
+        $arquivos = array_diff(scandir($musicDir), ['.', '..']);
+        foreach ($arquivos as $arquivo) {
+            if (strtolower(pathinfo($arquivo, PATHINFO_EXTENSION)) === 'mp3') {
+                $musicas[] = [
+                    'arquivo' => $arquivo,
+                    'nome' => pathinfo($arquivo, PATHINFO_FILENAME),
+                    'caminho_arquivo' => 'music/' . $arquivo
+                ];
+            }
+        }
+    } catch (\Throwable $e) {
+        error_log("Erro ao escanear pasta de músicas: " . $e->getMessage());
+    }
+    
+    return $musicas;
+}
+
 try {
+    // Carrega informações do banco de dados
     $musicModel   = new Music();
     $todasMusicas = $musicModel->getAllPublic();
+    
+    // Obtém lista de arquivos da pasta
+    $musicasDoPasta = obterMusicasDoPasta();
+    
+    // Mescla informações: prioriza dados do banco, fallback para nome do arquivo
+    if (!empty($musicasDoPasta) && !empty($todasMusicas)) {
+        // Se há músicas no banco E na pasta, usa dados do banco
+        // (música já foi validada que existe no disco em getAllPublic)
+    } elseif (!empty($musicasDoPasta)) {
+        // Se só há na pasta, usa a pasta como fonte
+        $todasMusicas = $musicasDoPasta;
+    }
+    // Se não há nada, $todasMusicas fica vazio
+    
 } catch (\Throwable $e) {
     $erroMusicas = $e->getMessage();
     error_log("Erro ao carregar músicas na index.php: " . $erroMusicas);
-    $todasMusicas = [];
+    // Fallback: tenta carregar apenas da pasta
+    $todasMusicas = obterMusicasDoPasta();
 }
 ?>
 <!DOCTYPE html>
@@ -184,7 +229,8 @@ if (file_exists($caminhoCompleto)):
 ?>
 <li class="playlist-item"
 data-src="music/<?= htmlspecialchars($arquivo) ?>"
-data-display="<?= htmlspecialchars($musica['nome_exibicao']) ?>">
+data-display="<?= htmlspecialchars($musica['nome_exibicao']) ?>"
+data-cover="<?= isset($musica['caminho_imagem']) && !empty($musica['caminho_imagem']) ? htmlspecialchars($musica['caminho_imagem']) : '' ?>">
 <div class="item-icon">
 <i class="bx bx-play-circle"></i>
 </div>
@@ -411,6 +457,7 @@ if (!$temMusica):
     <li><a href="#about">Sobre</a></li>
     <li><a href="#precos">Preços</a></li>
     <li><a href="#contact">Contato</a></li>
+    <li class="mobile-only"><a href="#" id="footerLoginTrigger" style="color: #ff6b9d; font-weight: bold;"><i class="bx bx-lock-alt"></i> Login</a></li>
     </ul>
     </div>
 
@@ -473,6 +520,12 @@ if (!$temMusica):
     <span>Contato</span>
     </a>
 
+    <!-- link de login na barra inferior mobile -->
+    <a href="#" id="loginMobileTrigger" class="login-trigger">
+    <i class="bx bx-lock-alt"></i>
+    <span>Login</span>
+    </a>
+
     </div>
     </nav>
 
@@ -481,13 +534,8 @@ if (!$temMusica):
     ou navegação — tudo é gerenciado pelo script.js
     ════════════════════════════════════════════════════════════════════ -->
     <?php
-    /*
-     * TEMPORARIAMENTE COMENTADO PARA TESTES
-     * Descomente quando o modal de login estiver pronto
-     *
-     * $loginPath = __DIR__ . '/views/login.php';
-     * if (file_exists($loginPath)) { include $loginPath; }
-     */
+    $loginPath = __DIR__ . '/views/login.php';
+    if (file_exists($loginPath)) { include $loginPath; }
     ?>
 
     <script src="assets/js/script.js"></script>

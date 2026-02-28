@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&family=Ubuntu+Condensed&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
-
+@import url("login.css");
 /* ============================================================
  *  Variáveis Globais
  * ============================================================ */
@@ -253,11 +253,12 @@ section,
  *  Music Player
  * ============================================================ */
 .player-section {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start !important;
   padding-top: 40px;
+  padding-bottom: 80px;
 }
 
 .player-container {
@@ -448,9 +449,14 @@ section,
 
 .playlist {
   list-style: none;
-  max-height: 300px;
+  max-height: 800px;
   overflow-y: auto;
   padding-right: 5px;
+}
+
+/* quando dentro da seção player, mostra lista maior */
+.player-section .playlist {
+  max-height: 900px;
 }
 
 .playlist::-webkit-scrollbar       { width: 5px; }
@@ -1316,7 +1322,7 @@ section,
 
   .btn-primary { margin-top: 0.5rem; }
 
-  .player-section  { min-height: 100vh; }
+  .player-section  { min-height: auto; padding-bottom: 80px; }
   .player-container { padding: 25px 20px; }
 
   .album-art    { width: 120px; height: 120px; }
@@ -1397,8 +1403,8 @@ section,
   }
 
   .player-section {
-    min-height: calc(100svh - var(--header-height)) !important;
-    padding: 0 !important;
+    min-height: auto !important;
+    padding: 20px 0 80px 0 !important;
   }
 
   .player-container {
@@ -1487,8 +1493,8 @@ section,
   .hero-content p  { font-size: 1.05rem; max-width: 90%; }
 
   .player-section {
-    min-height: calc(100svh - var(--header-height)) !important;
-    padding: 0 !important;
+    min-height: auto !important;
+    padding: 20px 0 80px 0 !important;
     justify-content: flex-start !important;
   }
 
@@ -1546,7 +1552,8 @@ section,
   .hero-content h2 { font-size: 1.6rem; }
 
   .player-section {
-    min-height: calc(100svh - var(--header-height)) !important;
+    min-height: auto !important;
+    padding: 20px 0 80px 0 !important;
   }
 
   .album-art { width: 90px; height: 90px; margin-bottom: 15px; }
@@ -1556,4 +1563,139 @@ section,
     padding-left:  calc(20px + env(safe-area-inset-left,  0px));
     padding-right: calc(20px + env(safe-area-inset-right, 0px));
   }
+}
+
+/* ============================================================
+ *  Visibilidade Mobile
+ * ============================================================ */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+/* footer link específico */
+.footer-section .mobile-only {
+  margin-top: 8px;
+}
+.footer-section .mobile-only a {
+  color: var(--primary-color) !important;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* ============================================================
+ *  Login Modal Styles
+ * ============================================================ */
+.login-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease;
+  z-index: 1000;
+  pointer-events: none; /* inicialmente não captura clique */
+}
+
+.login-modal-overlay.active {
+  pointer-events: auto; /* quando visível passa a receber eventos */
+}
+
+
+
+/* Ajuste para centralizar melhor em telas estreitas */
+@media (max-width: 768px) {
+  .login-modal {
+    top: 40%;
+    transform: translate(-50%, -40%) scale(0.8);
+  }
+}
+.login-modal.active,
+.login-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.login-modal.active {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.login-modal-content {
+  padding: 20px;
+  width: 100%;
+}
+
+.login-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #ffff00;
+  font-size: 1.6rem;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.login-form-modal .form-group {
+  margin-bottom: 15px;
+}
+
+.login-form-modal label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.login-form-modal input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 10px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.btn-login:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.form-message {
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.form-message.error {
+  color: red;
+}
+
+.form-message.success {
+  color: green;
 }
