@@ -25,21 +25,21 @@ const player = {
     },
 
     cacheElements() {
-        this.trackName     = document.getElementById('trackName');
-        this.artistName    = document.getElementById('artistName');
-        this.playBtn       = document.getElementById('playBtn');
-        this.albumArt      = document.getElementById('albumArtContainer');
-        this.albumCover    = document.getElementById('albumCover');
-        this.progress      = document.getElementById('progress');
-        this.currentTimeEl = document.getElementById('currentTime');
-        this.durationEl    = document.getElementById('duration');
-        this.volumeSlider  = document.getElementById('volumeSlider');
-        this.shuffleBtn    = document.getElementById('shuffleBtn');
-        this.repeatBtn     = document.getElementById('repeatBtn');
-        this.searchInput   = document.getElementById('searchInput');
+        this.trackName         = document.getElementById('trackName');
+        this.artistName        = document.getElementById('artistName');
+        this.playBtn           = document.getElementById('playBtn');
+        this.albumArt          = document.getElementById('albumArtContainer');
+        this.albumCover        = document.getElementById('albumCover');
+        this.progress          = document.getElementById('progress');
+        this.currentTimeEl     = document.getElementById('currentTime');
+        this.durationEl        = document.getElementById('duration');
+        this.volumeSlider      = document.getElementById('volumeSlider');
+        this.shuffleBtn        = document.getElementById('shuffleBtn');
+        this.repeatBtn         = document.getElementById('repeatBtn');
+        this.searchInput       = document.getElementById('searchInput');
         this.playlistContainer = document.getElementById('playlistContainer');
-        this.nav           = document.querySelector('.nav');
-        this.menuToggle    = document.querySelector('.menu-toggle');
+        this.nav               = document.querySelector('.nav');
+        this.menuToggle        = document.querySelector('.menu-toggle');
     },
 
     getHeaderHeight() {
@@ -93,7 +93,7 @@ const player = {
                 if (!href || !href.startsWith('#')) return;
                 e.preventDefault();
                 this.closeMobileMenu();
-                
+
                 const id = href.replace('#', '');
                 if (!id || id === 'home') {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -146,19 +146,20 @@ const player = {
     setupPlaylist() {
         const items = document.querySelectorAll('.playlist-item');
         this.playlist = Array.from(items).map((item, index) => ({
-            src:     item.dataset.src,
-            display: item.dataset.display,
-            cover:   item.dataset.cover || 'assets/images/cover.png',
-            element: item,
+            src:           item.dataset.src,
+            display:       item.dataset.display,
+            artist:        item.dataset.artist || 'Artista Desconhecido', // ← campo artista
+            cover:         item.dataset.cover  || 'assets/images/cover.png',
+            element:       item,
             originalIndex: index
         }));
         this.originalPlaylist = [...this.playlist];
 
-        this.playlist.forEach((track, index) => {
-            track.element.onclick = () => { 
+        this.playlist.forEach((track) => {
+            track.element.onclick = () => {
                 const realIndex = this.playlist.findIndex(t => t.src === track.src);
-                this.loadTrack(realIndex); 
-                this.play(); 
+                this.loadTrack(realIndex);
+                this.play();
             };
         });
     },
@@ -168,22 +169,23 @@ const player = {
         this.currentIndex = index;
         const m = this.playlist[index];
         this.audio.src = m.src;
-        
-        // Capa
+
+        // Capa do álbum
         if (this.albumCover) {
-            this.albumCover.src = m.cover;
-            this.albumCover.onerror = () => this.albumCover.src = 'assets/images/cover.png';
+            this.albumCover.src = (m.cover && m.cover.trim() !== '')
+                ? m.cover
+                : 'assets/images/cover.png';
+            this.albumCover.onerror = () => {
+                this.albumCover.src = 'assets/images/cover.png';
+            };
         }
-        
-        // Texto
-        if (m.display.includes(' - ')) {
-            const p = m.display.split(' - ');
-            this.artistName.innerText = p[0].trim();
-            this.trackName.innerText  = p[1].trim();
-        } else {
-            this.trackName.innerText  = m.display;
-            this.artistName.innerText = 'Artista';
-        }
+
+        // ── CORREÇÃO PRINCIPAL ──
+        // Exibe título e artista usando os campos separados do data-attribute.
+        // NÃO depende mais de " - " no nome da música.
+        if (this.trackName)  this.trackName.innerText  = m.display || 'Sem título';
+        if (this.artistName) this.artistName.innerText = m.artist  || 'Artista Desconhecido';
+
         this.highlightCurrentTrack();
     },
 
@@ -196,7 +198,7 @@ const player = {
 
     shufflePlaylist() {
         if (!this.originalPlaylist.length) this.originalPlaylist = [...this.playlist];
-        
+
         const currentTrack = this.playlist[this.currentIndex];
         let rest = this.playlist.filter(t => t.src !== currentTrack.src);
 
@@ -220,7 +222,6 @@ const player = {
 
     renderPlaylistDOM() {
         if (!this.playlistContainer) return;
-        // Re-insere os elementos na nova ordem
         this.playlist.forEach(track => {
             this.playlistContainer.appendChild(track.element);
         });
@@ -228,12 +229,12 @@ const player = {
 
     setupEvents() {
         if (this.playBtn) this.playBtn.onclick = () => this.togglePlay();
-        
+
         this.audio.volume = 0.7;
 
         this.audio.addEventListener('timeupdate', () => {
-            const current = this.audio.currentTime || 0;
-            const duration = this.audio.duration || 0;
+            const current  = this.audio.currentTime || 0;
+            const duration = this.audio.duration    || 0;
             if (this.currentTimeEl) this.currentTimeEl.innerText = this.formatTime(current);
             if (duration > 0 && this.progress) {
                 this.progress.style.width = ((current / duration) * 100) + '%';
@@ -254,7 +255,6 @@ const player = {
             this.audio.volume = e.target.value / 100;
         });
 
-        // Controles
         document.getElementById('prevBtn')?.addEventListener('click', () => {
             this.currentIndex = (this.currentIndex - 1 + this.playlist.length) % this.playlist.length;
             this.loadTrack(this.currentIndex);
@@ -275,7 +275,6 @@ const player = {
 
         this.repeatBtn?.addEventListener('click', () => {
             this.repeatMode = (this.repeatMode + 1) % 3;
-            // Estilo visual: 0 = off, 1 = repeat all (blue), 2 = repeat one (yellow/icon change)
             this.repeatBtn.classList.toggle('active', this.repeatMode > 0);
             this.repeatBtn.style.color = this.repeatMode === 2 ? 'var(--yellow)' : '';
             this.repeatBtn.title = ["Repetir: Off", "Repetir: Tudo", "Repetir: Faixa"][this.repeatMode];
@@ -306,11 +305,13 @@ const player = {
     },
 
     togglePlay() { this.isPlaying ? this.pause() : this.play(); },
+
     play() {
         this.audio.play().catch(() => console.log("Interação requerida"));
         this.isPlaying = true;
         if (this.playBtn) this.playBtn.innerHTML = '<i class="bx bx-pause"></i>';
     },
+
     pause() {
         this.audio.pause();
         this.isPlaying = false;
@@ -321,8 +322,10 @@ const player = {
         this.searchInput?.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             this.playlist.forEach(track => {
-                const isVisible = track.display.toLowerCase().includes(term);
-                track.element.style.display = isVisible ? 'flex' : 'none';
+                // Busca tanto no título quanto no artista
+                const matchTitle  = track.display.toLowerCase().includes(term);
+                const matchArtist = track.artist.toLowerCase().includes(term);
+                track.element.style.display = (matchTitle || matchArtist) ? 'flex' : 'none';
             });
         });
     }
