@@ -2,8 +2,8 @@
 -- Aurora Music - Banco de Dados
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS `aurora_music` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `aurora_music`;
+CREATE DATABASE IF NOT EXISTS `music` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `music`;
 
 -- ============================================================
 -- Tabela: usuarios
