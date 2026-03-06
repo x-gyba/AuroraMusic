@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -11,9 +16,15 @@ body {
     padding: 20px;
 }
 
+/* ─── Wrapper central ───────────────────────────────────────── */
+.page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ─── Header ───────────────────────────────────────────────── */
 .header {
-    max-width: 1200px;
-    margin: 0 auto 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -21,6 +32,8 @@ body {
     padding: 20px 30px;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    width: 100%;
 }
 
 .user-info {
@@ -40,6 +53,7 @@ body {
     color: white;
     font-size: 24px;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .user-name {
@@ -57,6 +71,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    flex-shrink: 0;
 }
 
 .logout-btn:hover {
@@ -64,37 +79,29 @@ body {
     transform: translateY(-2px);
 }
 
+/* ─── Container ─────────────────────────────────────────────── */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
     gap: 30px;
+    width: 100%;
 }
 
+/* ─── Card ──────────────────────────────────────────────────── */
 .card {
     background: white;
     border-radius: 15px;
     padding: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
 }
 
-h1, h2 {
-    color: #333;
-    margin-bottom: 20px;
-}
+h1, h2 { color: #333; margin-bottom: 20px; }
+h1 { font-size: 28px; }
+h2 { font-size: 24px; }
 
-h1 {
-    font-size: 28px;
-}
-
-h2 {
-    font-size: 24px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
+/* ─── Form ──────────────────────────────────────────────────── */
+.form-group { margin-bottom: 20px; }
 
 label {
     display: block;
@@ -116,9 +123,7 @@ input[type="text"] {
 }
 
 input[type="file"]:hover,
-input[type="text"]:hover {
-    border-color: #667eea;
-}
+input[type="text"]:hover { border-color: #667eea; }
 
 input[type="file"]:focus,
 input[type="text"]:focus {
@@ -133,6 +138,7 @@ input[type="text"]:focus {
     color: #666;
 }
 
+/* ─── Botões ────────────────────────────────────────────────── */
 .btn {
     padding: 12px 30px;
     border: none;
@@ -160,10 +166,8 @@ input[type="text"]:focus {
     cursor: not-allowed;
 }
 
-.progress-container {
-    display: none;
-    margin-top: 20px;
-}
+/* ─── Progress ──────────────────────────────────────────────── */
+.progress-container { display: none; margin-top: 20px; }
 
 .progress-bar {
     width: 100%;
@@ -187,9 +191,8 @@ input[type="text"]:focus {
     font-size: 16px;
 }
 
-#messageContainer {
-    margin-top: 20px;
-}
+/* ─── Mensagens ─────────────────────────────────────────────── */
+#messageContainer { margin-top: 20px; }
 
 .message {
     padding: 15px 20px;
@@ -199,28 +202,14 @@ input[type="text"]:focus {
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.message-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
+.message-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.message-error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-.message-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
+/* ─── Lista músicas ─────────────────────────────────────────── */
 .music-item {
     padding: 20px;
     border: 2px solid #f0f0f0;
@@ -254,22 +243,23 @@ input[type="text"]:focus {
     object-position: center;
 }
 
+.music-info { flex: 1; min-width: 0; }
+
 .music-info h3 {
     color: #333;
     margin-bottom: 10px;
     font-size: 18px;
+    word-break: break-word;
 }
 
 .music-info p {
     color: #666;
     font-size: 13px;
     margin: 5px 0;
+    word-break: break-word;
 }
 
-.music-filename {
-    color: #999 !important;
-    font-style: italic;
-}
+.music-filename { color: #999 !important; font-style: italic; }
 
 .music-actions {
     margin-top: 15px;
@@ -278,30 +268,11 @@ input[type="text"]:focus {
     flex-wrap: wrap;
 }
 
-.btn-small {
-    padding: 8px 16px;
-    font-size: 14px;
-}
-
-.btn-play {
-    background: #28a745;
-    color: white;
-}
-
-.btn-play:hover {
-    background: #218838;
-    transform: translateY(-2px);
-}
-
-.btn-delete {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #c82333;
-    transform: translateY(-2px);
-}
+.btn-small { padding: 8px 16px; font-size: 14px; }
+.btn-play  { background: #28a745; color: white; }
+.btn-play:hover  { background: #218838; transform: translateY(-2px); }
+.btn-delete      { background: #dc3545; color: white; }
+.btn-delete:hover{ background: #c82333; transform: translateY(-2px); }
 
 .no-music {
     text-align: center;
@@ -311,36 +282,106 @@ input[type="text"]:focus {
     font-size: 16px;
 }
 
-.error {
-    color: #dc3545;
-    text-align: center;
-    padding: 40px;
-}
+.error { color: #dc3545; text-align: center; padding: 40px; }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVO MOBILE
+   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+
+    body { padding: 12px; }
+
+    .page-wrapper {
+        width: 100%;
+        max-width: 100%;
+    }
+
     .header {
         flex-direction: column;
-        gap: 15px;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
         text-align: center;
     }
+
+    .user-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .user-avatar { width: 40px; height: 40px; font-size: 18px; }
+    .user-name   { font-size: 15px; }
+
+    .logout-btn {
+        width: 60%;
+        text-align: center;
+        padding: 9px;
+        font-size: 14px;
+    }
+
+    .container { gap: 12px; }
+
+    .card {
+        padding: 18px 16px;
+        border-radius: 12px;
+    }
+
+    h1 { font-size: 20px; margin-bottom: 14px; }
+    h2 { font-size: 18px; margin-bottom: 14px; }
+
+    .form-group { margin-bottom: 14px; }
+
+    label { font-size: 13px; }
+
+    input[type="file"],
+    input[type="text"] {
+        font-size: 13px;
+        padding: 10px 12px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .file-info { font-size: 11px; }
+
+    .btn-primary { font-size: 14px; padding: 12px; }
+
+    .progress-bar  { height: 30px; }
+    .progress-fill { font-size: 12px; }
 
     .music-item {
         flex-direction: column;
         align-items: center;
         text-align: center;
+        padding: 14px;
+        gap: 10px;
     }
 
-    .music-cover {
-        width: 100px;
-        height: 100px;
-    }
+    .music-cover { width: 80px; height: 80px; }
+    .music-info  { width: 100%; }
+    .music-info h3 { font-size: 15px; }
+    .music-info p  { font-size: 12px; }
 
     .music-actions {
         flex-direction: column;
         width: 100%;
+        gap: 7px;
     }
 
     .btn-small {
         width: 100%;
+        text-align: center;
+        padding: 10px;
+        font-size: 13px;
     }
+
+    .no-music { padding: 24px 10px; font-size: 13px; }
+}
+
+@media (max-width: 380px) {
+    body { padding: 8px; }
+    .card { padding: 14px 12px; }
+    h1 { font-size: 17px; }
+    h2 { font-size: 15px; }
 }

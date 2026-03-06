@@ -23,7 +23,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 // Captura informações do usuário
-$nomeUsuario = $_SESSION['usuario'] ?? 'Usuário';
+$nomeUsuario = $_SESSION['nome'] ?? $_SESSION['usuario'] ?? 'Usuário';
 $emailUsuario = $_SESSION['email'] ?? '';
 $idUsuario = $_SESSION['id'] ?? 0;
 $loginTime = $_SESSION['login_time'] ?? time();

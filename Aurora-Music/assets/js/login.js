@@ -1,200 +1,116 @@
 /**
  * LOGIN.JS - AURORA MUSIC 2026
- * Versão Blindada: Não interfere em outros botões.
  */
 class LoginModal {
     constructor() {
         this.cacheElements();
         this.isModalOpen = false;
-        
         if (this.modal && this.form) {
             this.init();
         }
     }
 
     cacheElements() {
-        this.modal = document.getElementById("loginModal");
-        this.overlay = document.getElementById("loginOverlay");
-        this.closeBtn = document.getElementById("closeModal");
-        this.loginTrigger = document.getElementById("loginTrigger");
-        this.footerLoginTrigger = document.getElementById("footerLoginTrigger");
-        this.mobileNavTrigger = document.getElementById("loginMobileTrigger");
-        this.form = document.getElementById("loginForm");
-        this.message = document.getElementById("formMessage");
-        this.togglePassword = document.getElementById("togglePassword");
-        this.passwordInput = document.getElementById("password");
-        this.usernameInput = document.getElementById("username");
-        this.loginButton = document.getElementById("btnLogin");
+        this.modal         = document.getElementById("loginModal");
+        this.closeBtn      = document.querySelector(".close-modal");
+        this.loginTrigger  = document.getElementById("loginTrigger");
+        this.footerTrigger = document.getElementById("footerLoginTrigger");
+        this.mobileTrigger = document.getElementById("loginMobileTrigger");
+        this.form          = document.getElementById("loginForm");
+        this.message       = document.getElementById("loginMessage");
+        this.usuarioInput  = document.getElementById("email_login");
+        this.passwordInput = document.getElementById("password_login");
     }
 
     init() {
-        // ABRIR: Uso de verificação estrita de ID
-        if (this.loginTrigger) {
-            this.loginTrigger.addEventListener('click', (e) => {
-                if (e.currentTarget.id === 'loginTrigger') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.open();
-                }
-            });
-        }
-
-        // ABRIR: Link de login do footer (mobile)
-        if (this.footerLoginTrigger) {
-            this.footerLoginTrigger.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // marca origem para deslocar o modal um pouco mais baixo
-                this.open('footer');
-            });
-        }
-
-        // gatilho na barra inferior mobile
-        if (this.mobileNavTrigger) {
-            this.mobileNavTrigger.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.open();
-            });
-        }
-
-        // FECHAR: Botão X
-        if (this.closeBtn) {
-            this.closeBtn.onclick = (e) => {
-                e.preventDefault();
-                this.close();
-            };
-        }
-
-        // FECHAR: Clique no Fundo
-        if (this.overlay) {
-            this.overlay.onclick = (e) => {
-                if (e.target === this.overlay) this.close();
-            };
-        }
-
-        // FECHAR: Tecla ESC
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && this.isModalOpen) this.close();
+        [this.loginTrigger, this.footerTrigger, this.mobileTrigger].forEach(btn => {
+            if (btn) btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); this.open(); });
         });
 
-        // Alternar Senha (Boxicons)
-        if (this.togglePassword) {
-            this.togglePassword.onclick = (e) => {
-                e.preventDefault();
-                this.togglePasswordVisibility();
-            };
-        }
+        if (this.closeBtn) this.closeBtn.addEventListener("click", (e) => { e.preventDefault(); this.close(); });
 
-        // Submit do Form
-        if (this.form) {
-            this.form.onsubmit = (e) => {
-                e.preventDefault();
-                this.handleLogin();
-            };
-        }
+        this.modal.addEventListener("click", (e) => { if (e.target === this.modal) this.close(); });
+
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && this.isModalOpen) this.close(); });
+
+        this.form.addEventListener("submit", (e) => { e.preventDefault(); this.handleLogin(); });
     }
 
-    open(source) {
+    open() {
         this.isModalOpen = true;
-        this.modal.classList.add("active");
-        if (this.overlay) this.overlay.classList.add("active");
-        
-        // se veio do rodapé, deslocar para baixo
-        if (source === 'footer') {
-            this.modal.style.top = '65%';
-        } else {
-            this.modal.style.top = '';
-        }
-
         this.modal.style.display = "flex";
         document.body.style.overflow = "hidden";
-        
-        setTimeout(() => this.usernameInput?.focus(), 150);
+        void this.modal.offsetWidth;
+        this.modal.classList.add("active");
+        setTimeout(() => this.usuarioInput?.focus(), 150);
     }
 
     close() {
         this.isModalOpen = false;
         this.modal.classList.remove("active");
-        if (this.overlay) this.overlay.classList.remove("active");
-        
         setTimeout(() => {
             if (!this.isModalOpen) {
                 this.modal.style.display = "none";
                 document.body.style.overflow = "";
-                // remove ajuste de posição personalizado
-                this.modal.style.top = '';
             }
-        }, 300);
-
+        }, 350);
         this.clearForm();
     }
 
-    togglePasswordVisibility() {
-        const isPassword = this.passwordInput.type === "password";
-        this.passwordInput.type = isPassword ? "text" : "password";
-        const icon = this.togglePassword.querySelector("i");
-        if (icon) icon.className = isPassword ? 'bx bx-show' : 'bx bx-hide';
-    }
-
     async handleLogin() {
-        const usuario = this.usernameInput?.value.trim() || '';
-        const senha = this.passwordInput?.value || '';
+        const usuario = this.usuarioInput?.value.trim() || "";
+        const senha   = this.passwordInput?.value || "";
 
         if (!usuario || !senha) {
-            this.showMessage('Preencha todos os campos.', 'error');
+            this.showMessage("Preencha todos os campos.", "error");
             return;
         }
 
-        this.setLoading(true);
-        this.showMessage('', '');
+        this.showMessage("Entrando...", "info");
 
         try {
-            const formData = new FormData();
-            formData.append('usuario', usuario);
-            formData.append('senha', senha);
+            // FormData usa os name="usuario" e name="senha" do HTML — direto e correto
+            const formData = new FormData(this.form);
 
-            const response = await fetch('controllers/AuthController.php?auth_action=login', {
-                method: 'POST',
+            const response = await fetch(this.form.action, {
+                method: "POST",
                 body: formData,
-                credentials: 'same-origin'
+                credentials: "same-origin"
             });
 
-            const data = await response.json();
+            const text = await response.text();
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                this.showMessage("Erro inesperado do servidor.", "error");
+                return;
+            }
 
             if (data.success) {
-                this.showMessage('✓ Login realizado com sucesso!', 'success');
+                this.showMessage("✓ " + data.message, "success");
                 setTimeout(() => {
-                    window.location.href = data.redirect;
-                }, 1500);
+                    window.location.href = data.redirect || "views/dashboard.php";
+                }, 1200);
             } else {
-                this.showMessage(data.message || 'Erro ao fazer login.', 'error');
+                this.showMessage(data.message || "Usuário ou senha incorretos.", "error");
             }
-        } catch (error) {
-            this.showMessage('Erro de conexão. Tente novamente.', 'error');
-        } finally {
-            this.setLoading(false);
+
+        } catch (err) {
+            this.showMessage("Erro de conexão. Tente novamente.", "error");
         }
     }
 
     showMessage(text, type) {
         if (!this.message) return;
         this.message.textContent = text;
-        this.message.className = `form-message show ${type}`;
-    }
-
-    setLoading(isLoading) {
-        if (!this.loginButton) return;
-        this.loginButton.disabled = isLoading;
-        const loader = this.loginButton.querySelector(".btn-loader");
-        const text = this.loginButton.querySelector(".btn-text");
-        if (loader) loader.style.display = isLoading ? "inline-block" : "none";
-        if (text) text.style.display = isLoading ? "none" : "inline";
+        this.message.className = "login-message show " + type;
     }
 
     clearForm() {
         if (this.form) this.form.reset();
-        if (this.message) this.message.className = "form-message";
+        if (this.message) this.message.className = "login-message";
     }
 }
 

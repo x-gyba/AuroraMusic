@@ -1,35 +1,17 @@
 /* ============================================================
    SISTEMA DE LOGIN - AURORA MUSIC 2026
-   Carregue APÓS style.css no <head>
+   Corrigido: centralização mobile, transição suave, sem top override
    ============================================================ */
 
-/* ─── Overlay ─────────────────────────────────────────────── */
-.login-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(8px);
-  z-index: 9990;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.login-overlay.active {
-  display: block;
-  opacity: 1;
-}
-
-/* ─── Modal ────────────────────────────────────────────────── */
-.login-modal {
+/* ─── Modal (ID: loginModal) ───────────────────────────────── */
+#loginModal {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -45%) scale(0.95);
+  transform: translate(-50%, -50%) scale(0.95);
   z-index: 9991;
   display: none;
   opacity: 0;
-  visibility: hidden;
   width: 90%;
   max-width: 420px;
   background: linear-gradient(145deg, #070136 0%, #0d0550 100%);
@@ -37,236 +19,198 @@
   border: 1px solid rgba(39, 94, 245, 0.45);
   border-radius: 22px;
   padding: 40px;
-  overflow: visible;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(39, 94, 245, 0.15);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Garante que nunca ultrapasse a tela no mobile */
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-.login-modal.active {
-  display: block;
+#loginModal.active {
   opacity: 1;
-  visibility: visible;
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* ─── Conteúdo ─────────────────────────────────────────────── */
-.login-modal .login-modal-content {
-  background: transparent;
-  color: #ffffff;
+/* Fundo escuro — gerado pelo modal ocupando o ecrã inteiro via z-index */
+#loginModal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: -1;
+  pointer-events: all;
 }
 
-/* ─── Botão Fechar ─────────────────────────────────────────── */
-.login-modal .close-modal {
+/* Permite clicar fora para fechar */
+#loginModal {
+  cursor: default;
+}
+
+/* ─── Conteúdo interno ─────────────────────────────────────── */
+.modal-login-content {
+  position: relative;
+  width: 100%;
+  cursor: default;
+}
+
+/* ─── Botão Fechar (.close-modal) ──────────────────────────── */
+.close-modal {
   position: absolute;
   top: -18px;
   right: -18px;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffff00;
-  font-size: 1.1rem;
-  cursor: pointer;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+  z-index: 10;
 }
 
-.login-modal .close-modal:hover {
-  background: #ef4444;
-  border-color: #ef4444;
-  transform: rotate(90deg) scale(1.1);
+.close-modal:hover {
+  background: #275ef5;
+  transform: scale(1.12);
 }
 
-/* ─── Header & Ícone ───────────────────────────────────────── */
-.login-modal .login-header {
+/* ─── Header ───────────────────────────────────────────────── */
+.login-header {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 
-.login-modal .login-header i {
-  font-size: 2rem;    /* Tamanho do ícone */
-  color: #ffff00;       /* Cor amarela */
-  margin-bottom: 10px;  /* Espaço entre ícone e texto */
-  display: block;       /* Centraliza o ícone */
-  text-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+.login-header img {
+  width: 60px;
+  height: auto;
+  margin-bottom: 10px;
 }
 
-.login-modal .login-header h2 {
-  font-family: "Google Sans", sans-serif;
-  font-size: 1.8rem;
+.login-header h3 {
+  font-size: 1.4rem;
   font-weight: 700;
   color: #ffff00;
-  margin-top: 0;
-  margin-bottom: 6px;
-  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5), 1px -1px 0 rgba(0, 0, 0, 0.5), -1px 1px 0 rgba(0, 0, 0, 0.5), 1px 1px 0 rgba(0, 0, 0, 0.5);
+  margin: 0;
 }
 
-.login-modal .login-header p {
-  font-size: 1.15rem;
-  font-weight:500;
-  color: rgba(255, 255, 255, 0.7);
+/* ─── Form Groups ───────────────────────────────────────────── */
+.modal-login-content .form-group {
+  margin-bottom: 14px;
 }
 
-/* ─── Form Group ───────────────────────────────────────────── */
-.login-modal .form-group {
-  margin-bottom: 18px;
-  position: relative;
-  background: transparent;
-}
-
-.login-modal .form-group label {
+.modal-login-content .form-group label {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-/* ─── Inputs ───────────────────────────────────────────────── */
-.login-modal input[type="text"],
-.login-modal input[type="email"],
-.login-modal input[type="password"] {
+/* ─── Input com ícone ───────────────────────────────────────── */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.05rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-with-icon input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 38px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
-  caret-color: #ffffff;
-  font-family: "Ubuntu", sans-serif;
-  font-size: 1rem;
   outline: none;
-  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  font-size: 0.95rem;
+  transition: border-color 0.25s, background 0.25s;
+  box-sizing: border-box;
 }
 
-.login-modal input[type="text"]::placeholder,
-.login-modal input[type="email"]::placeholder,
-.login-modal input[type="password"]::placeholder {
-  color: rgba(255, 255, 255, 0.38);
-  opacity: 1;
-}
-
-.login-modal input:focus {
+.input-with-icon input:focus {
   border-color: #275ef5;
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px rgba(39, 94, 245, 0.22);
 }
 
-/* Fix autofill Chrome/Safari */
-.login-modal input:-webkit-autofill,
-.login-modal input:-webkit-autofill:hover,
-.login-modal input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0d0550 inset !important;
-  -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff;
-  transition: background-color 99999s ease-in-out 0s;
+.input-with-icon input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
-/* ─── Password Field & Toggle ──────────────────────────────── */
-.login-modal .password-field {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.login-modal #togglePassword {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.login-modal #togglePassword:hover {
-  color: #275ef5;
-}
-
-/* ─── Mensagens ────────────────────────────────────────────── */
-.login-modal .form-message {
-  padding: 11px 14px;
-  border-radius: 9px;
-  margin-bottom: 18px;
-  font-size: 0.86rem;
+/* ─── Mensagem (ID: loginMessage) ──────────────────────────── */
+#loginMessage {
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
   text-align: center;
   display: none;
 }
 
-.login-modal .form-message.error {
-  display: block;
-  background: rgba(239, 68, 68, 0.14);
-  color: #ff7070;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-}
+#loginMessage.show   { display: block; }
+#loginMessage.error  { background: rgba(239, 68, 68, 0.2);  color: #ff7070; border: 1px solid #ef4444; }
+#loginMessage.success{ background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+#loginMessage.info   { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid #6366f1; }
 
-.login-modal .form-message.success {
-  display: block;
-  background: rgba(16, 185, 129, 0.14);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-}
-
-/* ─── Botão Login Compacto ──────────────────────────────────── */
-.login-modal #btnLogin {
-  width: auto; 
-  min-width: 160px;
-  margin: 0 auto;
-  padding: 8px 25px; 
+/* ─── Botão Submit ──────────────────────────────────────────── */
+.btn-login-submit {
+  width: auto;
+  min-width: 120px;
+  padding: 10px 12px;
   background: #275ef5;
   color: #ffffff;
-  border: 2px solid #275ef5;
+  border: none;
   border-radius: 50px;
-  font-family: "Ubuntu", sans-serif;
-  font-size: 0.85rem; 
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
+  justify-content: center;
+  gap: 6px;
+  margin: 22px auto 0;
+  transition: background 0.25s, transform 0.2s;
 }
 
-.login-modal #btnLogin:hover {
+.btn-login-submit:hover {
   background: #1a4cd1;
-  border-color: #1a4cd1;
   transform: translateY(-1px);
 }
 
-.login-modal #btnLogin:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.btn-login-submit:active {
+  transform: translateY(0);
 }
 
-/* ─── Mobile ───────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .login-modal {
-    padding: 32px 22px;
-    width: 93%;
-  }
-
-  .login-modal .close-modal {
-    top: 10px;
-    right: 10px;
-  }
-}
-
+/* ─── Mobile ────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .login-modal {
-    padding: 26px 16px;
-    width: 96%;
+  #loginModal {
+    width: 92%;
+    padding: 28px 20px;
+    /* top/left/transform permanecem os mesmos — centraliza corretamente */
   }
 
-  .login-modal .login-header h2 {
-    font-size: 1.5rem;
+  .close-modal {
+    top: -14px;
+    right: -10px;
   }
 }

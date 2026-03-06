@@ -19,10 +19,12 @@ if (!file_exists($musicModelPath)) {
     die("ERRO CRÍTICO: Arquivo models/Music.php não encontrado.<br>Caminho esperado: $musicModelPath");
 }
 require_once $musicModelPath;
-use Models\Music;
-if (!class_exists('Models\Music')) {
+
+if (!class_exists('\Models\Music')) {
     die("ERRO CRÍTICO: Classe Models\Music não foi definida em models/Music.php");
 }
+
+use Models\Music;
 $todasMusicas = [];
 $erroMusicas  = null;
 
@@ -40,11 +42,11 @@ function obterMusicasDoPasta(): array {
         foreach ($arquivos as $arquivo) {
             if (strtolower(pathinfo($arquivo, PATHINFO_EXTENSION)) === 'mp3') {
                 $musicas[] = [
-                    'arquivo'          => $arquivo,
-                    'nome_exibicao'    => pathinfo($arquivo, PATHINFO_FILENAME),
-                    'artista'          => 'Artista Desconhecido',
-                    'caminho_arquivo'  => 'music/' . $arquivo,
-                    'caminho_imagem'   => ''
+                    'arquivo'         => $arquivo,
+                    'nome_exibicao'   => pathinfo($arquivo, PATHINFO_FILENAME),
+                    'artista'         => '',
+                    'caminho_arquivo' => 'music/' . $arquivo,
+                    'caminho_imagem'  => ''
                 ];
             }
         }
@@ -57,9 +59,7 @@ function obterMusicasDoPasta(): array {
 try {
     $musicModel   = new Music();
     $todasMusicas = $musicModel->getAllPublic();
-
     $musicasDoPasta = obterMusicasDoPasta();
-
     if (!empty($musicasDoPasta) && !empty($todasMusicas)) {
         // Usa dados do banco (já validados)
     } elseif (!empty($musicasDoPasta)) {
@@ -78,7 +78,9 @@ try {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aurora Music - Sua Plataforma Musical</title>
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/login.css">
 <link rel="stylesheet" href="assets/css/whatsapp.css">
+<link rel="stylesheet" href="assets/css/bluetooth.css">
 <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
@@ -99,7 +101,6 @@ try {
 </div>
 <?php endif; ?>
 
-<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
 <header class="header">
 <div class="container">
     <div class="header-left">
@@ -132,7 +133,6 @@ try {
 </div>
 </header>
 
-<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
 <section class="hero" id="home">
 <div class="container">
     <div class="hero-content">
@@ -143,7 +143,6 @@ try {
 </div>
 </section>
 
-<!-- ═══════════════════════════════ PLAYER ═══════════════════════════════ -->
 <section class="player-section" id="music">
 <div class="container">
     <div class="player-container">
@@ -168,24 +167,30 @@ try {
             </div>
             <div class="controls">
                 <button id="shuffleBtn" class="control-btn" title="Aleatório">
-                    <i class="bx bx-shuffle"></i>
+                    <i class="bx bx-shuffle" style="font-size: 1.6rem;"></i>
                 </button>
                 <button id="prevBtn" class="control-btn" title="Anterior">
-                    <i class="bx bx-skip-previous"></i>
+                    <i class="bx bx-skip-previous" style="font-size: 2.5rem;"></i>
                 </button>
                 <button id="playBtn" class="control-btn play-btn" title="Play/Pause">
                     <i class="bx bx-play"></i>
                 </button>
                 <button id="nextBtn" class="control-btn" title="Próxima">
-                    <i class="bx bx-skip-next"></i>
+                    <i class="bx bx-skip-next" style="font-size: 2.5rem;"></i>
                 </button>
                 <button id="repeatBtn" class="control-btn" title="Repetir">
-                    <i class="bx bx-repeat"></i>
+                    <i class="bx bx-repeat" style="font-size: 1.6rem;"></i>
                 </button>
             </div>
             <div class="volume-control">
-                <i class="bx bx-volume-full"></i>
+                <i class="bx bx-volume-full" style="font-size: 1.6rem;"></i>
                 <input type="range" id="volumeSlider" min="0" max="100" value="70">
+            </div>
+            <div class="bluetooth-control">
+                <button id="bluetoothBtn" class="control-btn bluetooth-btn" title="Selecionar dispositivo de saída de áudio">
+                    <i class="bx bx-headphone" style="font-size: 1.6rem;"></i>
+                </button>
+                <span id="bluetoothStatus" class="bluetooth-status"></span>
             </div>
         </div>
 
@@ -206,12 +211,10 @@ if (!empty($todasMusicas)):
         if (file_exists($caminhoCompleto)):
             $temMusica = true;
 
-            // Suporte a artista: campo do banco OU fallback para 'Artista Desconhecido'
             $artista = '';
             if (!empty($musica['artista'])) {
                 $artista = $musica['artista'];
             } elseif (!empty($musica['nome_exibicao']) && strpos($musica['nome_exibicao'], ' - ') !== false) {
-                // Fallback: tenta extrair do nome se estiver no formato "Artista - Título"
                 $partes  = explode(' - ', $musica['nome_exibicao'], 2);
                 $artista = trim($partes[0]);
             } else {
@@ -249,7 +252,6 @@ if (!$temMusica): ?>
 </div>
 </section>
 
-<!-- ═══════════════════════════════ SOBRE ═══════════════════════════════ -->
 <section class="about-section" id="about">
 <div class="container">
     <div class="about-content">
@@ -275,7 +277,6 @@ if (!$temMusica): ?>
 </div>
 </section>
 
-<!-- ═══════════════════════════════ PREÇOS ═══════════════════════════════ -->
 <section class="pricing-section" id="precos">
 <div class="container">
     <h2 class="section-title">Escolha Seu Plano</h2>
@@ -330,15 +331,13 @@ if (!$temMusica): ?>
 </div>
 </section>
 
-<!-- ═══════════════════════════════ CONTATO ═══════════════════════════════ -->
 <section class="contact-section" id="contact">
 <div class="container">
     <h2 class="section-title">Entre em Contato</h2>
-    <p class="section-subtitle">Estamos aqui para ajudar você. Entre em contato conosco!</p>
     <div class="contact-wrapper">
         <div class="contact-info-cards">
             <div class="contact-card">
-                <div class="contact-icon"><i class="bx bx-envelope"></i></div>
+                <div class="contact-icon"><i class="bx bx-user"></i></div>
                 <h3>Email</h3>
                 <p>contato@auroramusic.com</p>
                 <a href="mailto:contato@auroramusic.com" class="contact-link">Enviar Email</a>
@@ -364,8 +363,7 @@ if (!$temMusica): ?>
             </div>
         </div>
         <div class="contact-form-container">
-            <form class="contact-form" id="contactForm"
-                  action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+            <form class="contact-form" id="contactForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
                 <div class="form-group">
                     <label for="name">Nome Completo</label>
                     <input type="text" id="name" name="name" placeholder="Seu nome" required>
@@ -380,13 +378,10 @@ if (!$temMusica): ?>
                 </div>
                 <div class="form-group">
                     <label for="message">Mensagem</label>
-                    <textarea id="message" name="message" rows="5"
-                              placeholder="Escreva sua mensagem..." required></textarea>
+                    <textarea id="message" name="message" rows="5" placeholder="Escreva sua mensagem..." required></textarea>
                 </div>
-                <input type="text" name="_gotcha" style="display:none">
                 <button type="submit" class="contact-submit-btn">
-                    <i class="bx bx-send"></i>
-                    Enviar Mensagem
+                    <i class="bx bx-send"></i> Enviar Mensagem
                 </button>
             </form>
         </div>
@@ -394,7 +389,57 @@ if (!$temMusica): ?>
 </div>
 </section>
 
-<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL DE LOGIN — IDs alinhados com login.js e login.css
+     ═══════════════════════════════════════════════════════════ -->
+<div id="loginModal" class="modal-login">
+    <div class="modal-login-content">
+
+        <button class="close-modal" aria-label="Fechar">&times;</button>
+
+        <div class="login-header">
+            <img src="assets/images/logo.png" alt="Logo Aurora Music">
+            <h3>Painel Administrativo</h3>
+        </div>
+
+        <form id="loginForm" action="controllers/AuthController.php?auth_action=login" method="POST">
+
+            <div class="form-group">
+                <label for="email_login">Usuário</label>
+                <div class="input-with-icon">
+                    <i class="bx bx-user"></i>
+                    <input type="text"
+                           id="email_login"
+                           name="usuario"
+                           placeholder="Seu usuário ou email"
+                           required
+                           autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password_login">Senha</label>
+                <div class="input-with-icon">
+                    <i class="bx bx-lock-alt"></i>
+                    <input type="password"
+                           id="password_login"
+                           name="senha"
+                           placeholder="Sua senha"
+                           required
+                           autocomplete="current-password">
+                </div>
+            </div>
+
+            <div id="loginMessage" class="login-message"></div>
+
+            <button type="submit" class="btn-login-submit">
+                Entrar <i class="bx bx-right-arrow-alt"></i>
+            </button>
+
+        </form>
+    </div>
+</div>
+
 <footer class="footer" id="footer">
 <div class="container">
     <div class="footer-content">
@@ -428,7 +473,7 @@ if (!$temMusica): ?>
         <div class="footer-section">
             <h4>Contato Rápido</h4>
             <ul class="contact-info">
-                <li><i class="bx bx-envelope"></i> contato@auroramusic.com</li>
+                <li><i class="bx bx-user"></i> contato@auroramusic.com</li>
                 <li><i class="bx bx-map"></i> Teresópolis, RJ - Brasil</li>
             </ul>
         </div>
@@ -439,52 +484,26 @@ if (!$temMusica): ?>
 </div>
 </footer>
 
-<!-- ═══════════════════════════════ WHATSAPP ═══════════════════════════════ -->
-<a href="https://wa.me/5521999999999?text=Olá!%20Vim%20do%20site%20Aurora%20Music%20e%20gostaria%20de%20mais%20informações."
-   class="whatsapp-float"
-   target="_blank"
-   rel="noopener noreferrer"
-   aria-label="Fale conosco no WhatsApp">
-    <span class="whatsapp-icon">
-        <i class="bx bxl-whatsapp"></i>
-    </span>
+<a href="https://wa.me/5521999999999?text=Olá!%20Vim%20do%20site%20Aurora%20Music"
+   class="whatsapp-float" target="_blank" rel="noopener noreferrer">
+    <span class="whatsapp-icon"><i class="bx bxl-whatsapp"></i></span>
 </a>
 
-<!-- ═══════════════════ MENU MOBILE INFERIOR ═══════════════════ -->
-<nav class="mobile-nav-scroll" aria-label="Navegação rápida">
+<nav class="mobile-nav-scroll">
 <div class="nav-scroll-container">
-    <a href="#home" data-section="home" class="active">
-        <i class="bx bx-home"></i>
-        <span>Início</span>
-    </a>
-    <a href="#music" data-section="music">
-        <i class="bx bx-music"></i>
-        <span>Músicas</span>
-    </a>
-    <a href="#about" data-section="about">
-        <i class="bx bx-info-circle"></i>
-        <span>Sobre</span>
-    </a>
-    <a href="#precos" data-section="precos">
-        <i class="bx bx-dollar-circle"></i>
-        <span>Preços</span>
-    </a>
-    <a href="#contact" data-section="contact">
-        <i class="bx bx-envelope"></i>
-        <span>Contato</span>
-    </a>
-    <a href="#" id="loginMobileTrigger" class="login-trigger">
-        <i class="bx bx-lock-alt"></i>
-        <span>Login</span>
-    </a>
+    <a href="#home" class="active"><i class="bx bx-home"></i><span>Início</span></a>
+    <a href="#music"><i class="bx bx-music"></i><span>Músicas</span></a>
+    <a href="#about"><i class="bx bx-info-circle"></i><span>Sobre</span></a>
+    <a href="#precos"><i class="bx bx-dollar-circle"></i><span>Preços</span></a>
+    <a href="#contact"><i class="bx bx-user"></i><span>Contato</span></a>
+    <a href="#" id="loginMobileTrigger"><i class="bx bx-lock-alt"></i><span>Login</span></a>
 </div>
 </nav>
 
-<?php
-$loginPath = __DIR__ . '/views/login.php';
-if (file_exists($loginPath)) { include $loginPath; }
-?>
 <script src="assets/js/script.js"></script>
 <script src="assets/js/login.js"></script>
+<script>
+    fetch('assets/js/auto.js').catch(() => {});
+</script>
 </body>
 </html>
