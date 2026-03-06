@@ -186,12 +186,12 @@ try {
                 <i class="bx bx-volume-full" style="font-size: 1.6rem;"></i>
                 <input type="range" id="volumeSlider" min="0" max="100" value="70">
             </div>
-            <div class="bluetooth-control">
-                <button id="bluetoothBtn" class="control-btn bluetooth-btn" title="Selecionar dispositivo de saída de áudio">
-                    <i class="bx bx-headphone" style="font-size: 1.6rem;"></i>
-                </button>
-                <span id="bluetoothStatus" class="bluetooth-status"></span>
-            </div>
+            <div class="bluetooth-control" style="display: flex; align-items: center; gap: 8px; min-width: 20px;">
+            <button id="bluetoothBtn" class="control-btn" style="display: none; background: none; border: none;">
+    <i class="bx bx-headphone" style="font-size: 1.6rem; color: #ffff00;"></i>
+</button>
+   <span id="bluetoothStatus" class="bluetooth-status" style="color: #ffff00; font-weight: bold; font-size: 0.9rem; display: none;"></span>
+</div>
         </div>
 
         <h2 class="section-title-playlist">Minha Biblioteca</h2>
@@ -218,7 +218,7 @@ if (!empty($todasMusicas)):
                 $partes  = explode(' - ', $musica['nome_exibicao'], 2);
                 $artista = trim($partes[0]);
             } else {
-                $artista = 'Artista Desconhecido';
+                $artista = '';
             }
 
             $cover = (!empty($musica['caminho_imagem'])) ? $musica['caminho_imagem'] : '';
