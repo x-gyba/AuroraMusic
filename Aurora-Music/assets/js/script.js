@@ -21,7 +21,7 @@ const player = {
         this.setupSearch();
         this.setupNavigation();
         this.setupMobileBottomNav();
-        this.setupLoginModal();
+        // setupLoginModal() REMOVIDO — login.js (classe LoginModal) é o único responsável
         this.setupBluetooth();
     },
 
@@ -45,18 +45,30 @@ const player = {
 
     /* ═══════════════════════════════════════════
        BLUETOOTH BADGE
-       Requer HTTPS — funciona em produção.
+       Só ativa em HTTPS — em HTTP desabilita silenciosamente.
        ═══════════════════════════════════════════ */
     setupBluetooth() {
-        if (!navigator.mediaDevices?.enumerateDevices) return;
+        const isSecure = window.location.protocol === 'https:' ||
+                         window.location.hostname === 'localhost' ||
+                         window.location.hostname === '127.0.0.1';
 
-        this._checkDevices();
+        if (!isSecure || !navigator.mediaDevices?.enumerateDevices) {
+            this._hideBadge();
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                stream.getTracks().forEach(t => t.stop());
+                this._checkDevices();
+            })
+            .catch(() => {
+                this._checkDevices();
+            });
 
         navigator.mediaDevices.addEventListener('devicechange', () => {
             this._checkDevices();
         });
-
-        document.addEventListener('click', () => this._checkDevices(), { once: true });
     },
 
     async _checkDevices() {
@@ -71,11 +83,9 @@ const player = {
             );
 
             if (ext) {
-                let name = ext.label || '';
-                name = name.replace(/\s*\(.*?\)\s*$/, '').trim() || 'Fone Conectado';
-                this._showBadge(name);
-            } else if (outputs.length > 1) {
-                this._showBadge('Fone Conectado');
+                const name = ext.label.replace(/\s*\(.*?\)\s*$/, '').trim();
+                if (name) this._showBadge(name);
+                else      this._hideBadge();
             } else {
                 this._hideBadge();
             }
@@ -149,7 +159,12 @@ const player = {
             if (this.durationEl) this.durationEl.textContent = this.formatTime(this.audio.duration);
         });
 
-        this.audio.addEventListener('play', () => this._checkDevices());
+        this.audio.addEventListener('play', () => {
+            const isSecure = window.location.protocol === 'https:' ||
+                             window.location.hostname === 'localhost' ||
+                             window.location.hostname === '127.0.0.1';
+            if (isSecure) this._checkDevices();
+        });
 
         document.querySelector('.progress-bar')?.addEventListener('click', e => {
             const r = e.currentTarget.getBoundingClientRect();
@@ -282,8 +297,39 @@ const player = {
     setupMobileBottomNav() {
         const mobileNav = document.querySelector('.mobile-nav-scroll');
         if (!mobileNav) return;
+
         const sections = document.querySelectorAll('section[id], .footer[id]');
         const links    = mobileNav.querySelectorAll('a[href^="#"]');
+
+        // ── Helper: altura real do header ─────────────────────────
+        const headerH = () => document.querySelector('.header')?.offsetHeight || 72;
+
+        // ── Clique nos links da bottomnav ──────────────────────────
+        links.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const href = link.getAttribute('href');
+
+                // "Início" (#home) → vai ao topo absoluto, mostrando o header
+                if (href === '#home' || href === '#') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        const top = target.getBoundingClientRect().top
+                                  + window.scrollY
+                                  - headerH();
+                        window.scrollTo({ top, behavior: 'smooth' });
+                    }
+                }
+
+                // Atualiza active imediatamente no clique
+                links.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        // ── IntersectionObserver: destaca o link conforme o scroll ─
         const obs = new IntersectionObserver(entries => {
             entries.forEach(e => {
                 if (e.isIntersecting) {
@@ -292,45 +338,16 @@ const player = {
                     if (a) a.classList.add('active');
                 }
             });
-        }, { threshold: 0.4 });
-        sections.forEach(s => obs.observe(s));
-    },
-
-    setupLoginModal() {
-        const modal    = document.getElementById('loginModal');
-        const triggers = [
-            document.getElementById('loginTrigger'),
-            document.getElementById('loginMobileTrigger'),
-            document.getElementById('footerLoginTrigger')
-        ];
-        const closeBtn = modal?.querySelector('.close-modal');
-        const form     = document.getElementById('loginForm');
-        const msg      = document.getElementById('loginMessage');
-        if (!modal) return;
-        const open  = e => { e?.preventDefault(); modal.classList.add('active'); };
-        const close = ()  => modal.classList.remove('active');
-        triggers.forEach(t => t?.addEventListener('click', open));
-        closeBtn?.addEventListener('click', close);
-        modal.addEventListener('click', e => { if (e.target === modal) close(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-        form?.addEventListener('submit', async e => {
-            e.preventDefault();
-            if (msg) { msg.textContent = 'Verificando...'; msg.className = 'login-message info'; }
-            try {
-                const res  = await fetch(form.action, { method: 'POST', body: new FormData(form) });
-                const text = await res.text();
-                if (res.redirected || text.includes('dashboard')) {
-                    window.location.href = res.url || 'views/dashboard.php';
-                } else if (res.status === 401 || text.includes('erro') || text.includes('inválid')) {
-                    if (msg) { msg.textContent = 'Usuário ou senha incorretos.'; msg.className = 'login-message error'; }
-                } else {
-                    window.location.reload();
-                }
-            } catch {
-                if (msg) { msg.textContent = 'Erro de conexão.'; msg.className = 'login-message error'; }
-            }
+        }, {
+            // rootMargin negativo do topo = desconsidera a faixa do header
+            rootMargin: `-${headerH()}px 0px -50% 0px`,
+            threshold: 0
         });
+
+        sections.forEach(s => obs.observe(s));
     }
+    // setupLoginModal() foi removido daqui.
+    // O login é gerenciado exclusivamente pela classe LoginModal em login.js
 };
 
 document.addEventListener('DOMContentLoaded', () => player.init());

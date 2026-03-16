@@ -19,31 +19,17 @@ use Models\Music;
 $todasMusicas = [];
 $erroMusicas  = null;
 
-function obterMusicasDoPasta(): array {
-    $dir = __DIR__ . '/music/';
-    if (!is_dir($dir)) return [];
-    $musicas = [];
-    foreach (array_diff(scandir($dir), ['.', '..']) as $f) {
-        if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'mp3') {
-            $musicas[] = [
-                'nome_exibicao'   => pathinfo($f, PATHINFO_FILENAME),
-                'artista'         => '',
-                'caminho_arquivo' => 'music/' . $f,
-                'caminho_imagem'  => ''
-            ];
-        }
-    }
-    return $musicas;
-}
+// REMOVIDO: obterMusicasDoPasta()
+// A função foi removida porque causava exibição de arquivos órfãos
+// (arquivos físicos sem registro no banco) quando a tabela estava vazia.
+// A fonte de verdade é exclusivamente o banco de dados.
 
 try {
-    $musicModel     = new Music();
-    $todasMusicas   = $musicModel->getAllPublic();
-    $musicasDoPasta = obterMusicasDoPasta();
-    if (empty($todasMusicas) && !empty($musicasDoPasta)) $todasMusicas = $musicasDoPasta;
+    $musicModel   = new Music();
+    $todasMusicas = $musicModel->getAllPublic();
 } catch (\Throwable $e) {
     $erroMusicas  = $e->getMessage();
-    $todasMusicas = obterMusicasDoPasta();
+    $todasMusicas = [];
 }
 ?>
 <!DOCTYPE html>
@@ -70,6 +56,8 @@ try {
 
 <header class="header">
   <div class="container">
+
+    <!-- Lado esquerdo: logo + título + versículo -->
     <div class="header-left">
       <div class="logo-area">
         <div class="brand-container">
@@ -81,15 +69,20 @@ try {
         </div>
       </div>
     </div>
-    <button class="menu-toggle" aria-label="Menu"><i class="bx bx-menu"></i></button>
-    <nav class="nav">
-      <a href="#home">Início</a>
-      <a href="#music">Músicas</a>
-      <a href="#about">Sobre</a>
-      <a href="#precos">Preços</a>
-      <a href="#" id="loginTrigger">Login</a>
-      <a href="#contact">Contato</a>
-    </nav>
+
+    <!-- Lado direito: botão menu (mobile) + nav (desktop) -->
+    <div class="header-right">
+      <button class="menu-toggle" aria-label="Menu"><i class="bx bx-menu"></i></button>
+      <nav class="nav">
+        <a href="#home">Início</a>
+        <a href="#music">Músicas</a>
+        <a href="#about">Sobre</a>
+        <a href="#precos">Preços</a>
+        <a href="#" id="loginTrigger">Login</a>
+        <a href="#contact">Contato</a>
+      </nav>
+    </div>
+
   </div>
 </header>
 
@@ -139,10 +132,6 @@ try {
           <input type="range" id="volumeSlider" min="0" max="100" value="70">
         </div>
 
-        <!-- ▼ BADGE BLUETOOTH ▼
-             - id="bluetoothBadge": o JS controla display (none/flex)
-             - id="bluetoothLabel": o JS escreve o nome do dispositivo
-             - NÃO tem style="display:none" — CSS cuida disso         -->
         <div id="bluetoothBadge" class="bluetooth-badge">
           <i class="bx bx-headphone"></i>
           <span id="bluetoothLabel">Fone Conectado</span>
@@ -185,9 +174,12 @@ if (!empty($todasMusicas)):
             <small class="item-artist"><?= htmlspecialchars($artista) ?></small>
           </div>
         </li>
-<?php endforeach; endif;
-if (!$temMusica): ?>
-        <li class="no-music-item"><i class="bx bx-music"></i> Nenhuma música disponível.</li>
+<?php endforeach; endif; ?>
+<?php if (!$temMusica): ?>
+        <li class="no-music-item">
+          <i class="bx bx-music"></i>
+          Nenhuma música encontrada. Consulte o seu Administrador.
+        </li>
 <?php endif; ?>
       </ul>
 

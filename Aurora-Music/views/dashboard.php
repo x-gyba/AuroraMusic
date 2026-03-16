@@ -1,61 +1,50 @@
 <?php
 session_start();
 
-// Importa as classes usadas pelo dashboard usando os caminhos corretos
 require_once __DIR__ . '/../models/Visitantes.php';
 require_once __DIR__ . '/../models/Music.php';
 
-// Registra a visita à página (público ou usuário)
 try {
-    // CORREÇÃO: Utilizando o namespace Models definido no arquivo do modelo
-    $visitantesTracker = new \Models\Visitantes(); 
+    $visitantesTracker = new \Models\Visitantes();
     $paginaAtual = basename($_SERVER['PHP_SELF'], '.php');
     $visitantesTracker->registrarVisita($paginaAtual);
-    $visitantesTracker = null; // Boa prática para liberar o objeto
+    $visitantesTracker = null;
 } catch (Exception $e) {
     error_log("Erro ao registrar visita: " . $e->getMessage());
 }
 
-// Proteção do dashboard
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header("Location: ../index.php");
     exit;
 }
 
-// Captura informações do usuário
-$nomeUsuario = $_SESSION['nome'] ?? $_SESSION['usuario'] ?? 'Usuário';
+$nomeUsuario  = $_SESSION['nome']  ?? $_SESSION['usuario'] ?? 'Usuário';
 $emailUsuario = $_SESSION['email'] ?? '';
-$idUsuario = $_SESSION['id'] ?? 0;
-$loginTime = $_SESSION['login_time'] ?? time();
-$dataLogin = date('d/m/Y H:i', $loginTime);
+$idUsuario    = $_SESSION['id']    ?? 0;
+$loginTime    = $_SESSION['login_time'] ?? time();
+$dataLogin    = date('d/m/Y H:i', $loginTime);
 
-// Carrega estatísticas de músicas do usuário
-$musicsCount = 0;
+$musicsCount  = 0;
 $musicsUsedMb = 0;
 try {
-    // CORREÇÃO: Utilizando o namespace Models
-    $musicModel = new \Models\Music();
-    $stats = $musicModel->getUserStats($idUsuario);
-    $musicsCount = isset($stats['total_musicas']) ? (int)$stats['total_musicas'] : 0;
-    $musicsUsedMb = isset($stats['espaco_usado']) ? round($stats['espaco_usado'] / (1024*1024), 2) : 0;
+    $musicModel   = new \Models\Music();
+    $stats        = $musicModel->getUserStats($idUsuario);
+    $musicsCount  = isset($stats['total_musicas']) ? (int)$stats['total_musicas'] : 0;
+    $musicsUsedMb = isset($stats['espaco_usado'])  ? round($stats['espaco_usado'] / (1024*1024), 2) : 0;
 } catch (Exception $e) {
     error_log("Erro ao carregar estatísticas de músicas: " . $e->getMessage());
-    // Mantém valores 0 em caso de erro
 }
 
-// Carrega estatísticas de visitantes do banco de dados
-$visitantesHoje = 0;
-$visitantesMes = 0;
+$visitantesHoje  = 0;
+$visitantesMes   = 0;
 $visitantesTotal = 0;
 try {
-    // CORREÇÃO: Utilizando o namespace Models
     $visitantesModel = new \Models\Visitantes();
-    $visitantesHoje = $visitantesModel->countHoje();
-    $visitantesMes = $visitantesModel->countMes();
+    $visitantesHoje  = $visitantesModel->countHoje();
+    $visitantesMes   = $visitantesModel->countMes();
     $visitantesTotal = $visitantesModel->countTotal();
 } catch (Exception $e) {
     error_log("Erro ao carregar estatísticas de visitantes: " . $e->getMessage());
-    // Mantém valores 0 em caso de erro
 }
 ?>
 <!DOCTYPE html>
@@ -109,6 +98,13 @@ try {
                             <span>Estatísticas de Visitantes</span>
                         </a>
                     </li>
+                    <!-- NOVO: Limpeza de Órfãos -->
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link" data-section="orfaos">
+                            <i class="fas fa-broom"></i>
+                            <span>Limpar Arquivos Órfãos</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link" data-section="login-info">
                             <i class="fas fa-info-circle"></i>
@@ -135,7 +131,6 @@ try {
                 <div class="user-avatar">
                     <?php echo strtoupper(substr($nomeUsuario, 0, 1)); ?>
                 </div>
-
                 <div class="user-details">
                     <h3><?php echo htmlspecialchars($nomeUsuario); ?></h3>
                     <p><?php echo htmlspecialchars($emailUsuario); ?></p>
@@ -145,6 +140,7 @@ try {
 
         <main class="main-content">
 
+            <!-- HOME -->
             <section class="content-section active" id="home">
                 <div class="welcome-card">
                     <h1>Olá, <?php echo htmlspecialchars($nomeUsuario); ?>! 👋</h1>
@@ -153,49 +149,35 @@ try {
 
                 <div class="cards-grid">
                     <div class="stat-card">
-                        <div class="stat-icon blue">
-                            <i class="fas fa-users"></i>
-                        </div>
+                        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
                         <div class="stat-info">
                             <h3>Total de Clientes</h3>
                             <p>0</p>
                         </div>
                     </div>
-
                     <div class="stat-card">
-                        <div class="stat-icon green">
-                            <i class="fas fa-music"></i>
-                        </div>
+                        <div class="stat-icon green"><i class="fas fa-music"></i></div>
                         <div class="stat-info">
                             <h3>Músicas Cadastradas</h3>
                             <p><?php echo $musicsCount; ?></p>
                         </div>
                     </div>
-
                     <div class="stat-card">
-                        <div class="stat-icon purple">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
+                        <div class="stat-icon purple"><i class="fas fa-chart-line"></i></div>
                         <div class="stat-info">
                             <h3>Número de Acessos</h3>
                             <p><?php echo $visitantesTotal; ?></p>
                         </div>
                     </div>
-
                     <div class="stat-card">
-                        <div class="stat-icon orange">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
+                        <div class="stat-icon orange"><i class="fas fa-dollar-sign"></i></div>
                         <div class="stat-info">
                             <h3>Pagamentos Pendentes</h3>
                             <p>0</p>
                         </div>
                     </div>
-
                     <div class="stat-card">
-                        <div class="stat-icon red">
-                            <i class="fas fa-clock"></i>
-                        </div>
+                        <div class="stat-icon red"><i class="fas fa-clock"></i></div>
                         <div class="stat-info">
                             <h3>Último Login</h3>
                             <p><?php echo date('d/m/Y', $loginTime); ?></p>
@@ -204,6 +186,7 @@ try {
                 </div>
             </section>
 
+            <!-- CLIENTES -->
             <section class="content-section" id="clientes">
                 <div class="content-card">
                     <h2><i class="fas fa-users"></i> Cadastro de Clientes</h2>
@@ -225,53 +208,45 @@ try {
                             <input type="text" id="enderecoCliente" class="form-control">
                         </div>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i>
-                            Cadastrar Cliente
+                            <i class="fas fa-save"></i> Cadastrar Cliente
                         </button>
                     </form>
                 </div>
             </section>
 
+            <!-- PAGAMENTOS -->
             <section class="content-section" id="pagamentos">
                 <div class="content-card">
                     <h2><i class="fas fa-dollar-sign"></i> Gerenciamento de Pagamentos</h2>
                     <p>Esta seção será implementada em breve com integração ao sistema de pagamentos.</p>
                     <button class="btn btn-success" onclick="alert('Em desenvolvimento')">
-                        <i class="fas fa-plus"></i>
-                        Novo Pagamento
+                        <i class="fas fa-plus"></i> Novo Pagamento
                     </button>
                 </div>
             </section>
 
+            <!-- VISITANTES -->
             <section class="content-section" id="visitantes">
                 <div class="content-card">
                     <h2><i class="fas fa-chart-line"></i> Estatísticas de Visitantes</h2>
-                    
+
                     <div class="cards-grid" style="margin-bottom: 30px;">
                         <div class="stat-card">
-                            <div class="stat-icon blue">
-                                <i class="fas fa-calendar-day"></i>
-                            </div>
+                            <div class="stat-icon blue"><i class="fas fa-calendar-day"></i></div>
                             <div class="stat-info">
                                 <h3>Visitas Hoje</h3>
                                 <p><?php echo $visitantesHoje; ?></p>
                             </div>
                         </div>
-
                         <div class="stat-card">
-                            <div class="stat-icon green">
-                                <i class="fas fa-calendar-alt"></i>
-                            </div>
+                            <div class="stat-icon green"><i class="fas fa-calendar-alt"></i></div>
                             <div class="stat-info">
                                 <h3>Visitas Este Mês</h3>
                                 <p><?php echo $visitantesMes; ?></p>
                             </div>
                         </div>
-
                         <div class="stat-card">
-                            <div class="stat-icon purple">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
+                            <div class="stat-icon purple"><i class="fas fa-chart-bar"></i></div>
                             <div class="stat-info">
                                 <h3>Total de Visitas</h3>
                                 <p><?php echo $visitantesTotal; ?></p>
@@ -308,12 +283,12 @@ try {
                                     <th>Página</th>
                                     <th>Navegador</th>
                                     <th>Sistema</th>
-                                    <th style="text-align: center;">Ações</th> 
+                                    <th style="text-align: center;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaVisitantes">
                                 <tr>
-                                    <td colspan="6" style="text-align: center;">Carregando...</td> 
+                                    <td colspan="6" style="text-align: center;">Carregando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -323,6 +298,50 @@ try {
                 </div>
             </section>
 
+            <!-- ================================================
+                 NOVA SEÇÃO: LIMPAR ARQUIVOS ÓRFÃOS
+                 ================================================ -->
+            <section class="content-section" id="orfaos">
+                <div class="content-card">
+                    <h2><i class="fas fa-broom"></i> Limpar Arquivos Órfãos</h2>
+                    <p class="orphan-desc">
+                        Arquivos órfãos são arquivos físicos que existem na pasta <code>music/</code>
+                        mas não possuem registro no banco de dados — geralmente restos de uploads
+                        deletados incorretamente. Esta operação os remove permanentemente.
+                    </p>
+
+                    <!-- Card de status / prévia -->
+                    <div class="orphan-status-card" id="orphanStatusCard">
+                        <div class="orphan-status-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="orphan-status-text">
+                            <strong>Pronto para varredura</strong>
+                            <span>Clique em "Verificar" para escanear os arquivos órfãos antes de remover.</span>
+                        </div>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="orphan-actions">
+                        <button class="btn btn-primary" id="btnVerificarOrfaos">
+                            <i class="fas fa-search"></i> Verificar
+                        </button>
+                        <button class="btn btn-danger" id="btnLimparOrfaos" disabled>
+                            <i class="fas fa-trash-alt"></i> Limpar Órfãos
+                        </button>
+                    </div>
+
+                    <!-- Resultado / log -->
+                    <div class="orphan-result" id="orphanResult" style="display:none;">
+                        <h3 id="orphanResultTitle"></h3>
+                        <div class="orphan-stats" id="orphanStats"></div>
+                        <ul class="orphan-file-list" id="orphanFileList"></ul>
+                        <ul class="orphan-error-list" id="orphanErrorList"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOGIN INFO -->
             <section class="content-section" id="login-info">
                 <div class="content-card">
                     <h2><i class="fas fa-info-circle"></i> Informações de Login</h2>
@@ -334,26 +353,11 @@ try {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Usuário</td>
-                                <td><?php echo htmlspecialchars($nomeUsuario); ?></td>
-                            </tr>
-                            <tr>
-                                <td>E-mail</td>
-                                <td><?php echo htmlspecialchars($emailUsuario); ?></td>
-                            </tr>
-                            <tr>
-                                <td>Data/Hora do Login</td>
-                                <td><?php echo $dataLogin; ?></td>
-                            </tr>
-                            <tr>
-                                <td>ID do Usuário</td>
-                                <td>#<?php echo $idUsuario; ?></td>
-                            </tr>
-                            <tr>
-                                <td>Status da Sessão</td>
-                                <td><span style="color: #10b981; font-weight: bold;">✓ Ativa</span></td>
-                            </tr>
+                            <tr><td>Usuário</td><td><?php echo htmlspecialchars($nomeUsuario); ?></td></tr>
+                            <tr><td>E-mail</td><td><?php echo htmlspecialchars($emailUsuario); ?></td></tr>
+                            <tr><td>Data/Hora do Login</td><td><?php echo $dataLogin; ?></td></tr>
+                            <tr><td>ID do Usuário</td><td>#<?php echo $idUsuario; ?></td></tr>
+                            <tr><td>Status da Sessão</td><td><span style="color: #10b981; font-weight: bold;">✓ Ativa</span></td></tr>
                         </tbody>
                     </table>
                 </div>
