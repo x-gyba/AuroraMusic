@@ -14,14 +14,18 @@ const player = {
     repeatMode: 0,
 
     init() {
+        /* Remove hash residual da URL sem recarregar nem rolar a página.
+           O browser não fará scroll automático para nenhuma âncora. */
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+
         this.cacheElements();
         this.setupPlaylist();
         if (this.playlist.length > 0) this.loadTrack(0);
         this.setupEvents();
         this.setupSearch();
+        this.setupAllAnchorLinks(); /* intercepta TODOS os links âncora da página */
         this.setupNavigation();
         this.setupMobileBottomNav();
-        // setupLoginModal() REMOVIDO — login.js (classe LoginModal) é o único responsável
         this.setupBluetooth();
     },
 
@@ -45,7 +49,6 @@ const player = {
 
     /* ═══════════════════════════════════════════
        BLUETOOTH BADGE
-       Só ativa em HTTPS — em HTTP desabilita silenciosamente.
        ═══════════════════════════════════════════ */
     setupBluetooth() {
         const isSecure = window.location.protocol === 'https:' ||
@@ -58,40 +61,28 @@ const player = {
         }
 
         navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                stream.getTracks().forEach(t => t.stop());
-                this._checkDevices();
-            })
-            .catch(() => {
-                this._checkDevices();
-            });
+            .then(stream => { stream.getTracks().forEach(t => t.stop()); this._checkDevices(); })
+            .catch(() => { this._checkDevices(); });
 
-        navigator.mediaDevices.addEventListener('devicechange', () => {
-            this._checkDevices();
-        });
+        navigator.mediaDevices.addEventListener('devicechange', () => this._checkDevices());
     },
 
     async _checkDevices() {
         try {
             const devs    = await navigator.mediaDevices.enumerateDevices();
             const outputs = devs.filter(d => d.kind === 'audiooutput');
-
-            const ext = outputs.find(d =>
+            const ext     = outputs.find(d =>
                 d.deviceId !== 'default' &&
                 d.deviceId !== 'communications' &&
                 d.deviceId !== ''
             );
-
             if (ext) {
                 const name = ext.label.replace(/\s*\(.*?\)\s*$/, '').trim();
-                if (name) this._showBadge(name);
-                else      this._hideBadge();
+                if (name) this._showBadge(name); else this._hideBadge();
             } else {
                 this._hideBadge();
             }
-        } catch {
-            this._hideBadge();
-        }
+        } catch { this._hideBadge(); }
     },
 
     _showBadge(name) {
@@ -268,14 +259,74 @@ const player = {
         });
     },
 
+    /* ═══════════════════════════════════════════════════════
+       SCROLL UNIFICADO — usado pela nav superior e bottom nav
+       Resolve seções no final da página (ex: #contact) que
+       não chegam ao topo porque não há conteúdo suficiente
+       abaixo. Calcula o offset real e limita ao maxScroll.
+       ═══════════════════════════════════════════════════════ */
+    scrollToSection(href) {
+        if (!href || href === '#home' || href === '#') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        const target = document.querySelector(href);
+        if (!target) return;
+
+        const headerH   = document.querySelector('.header')?.offsetHeight || 72;
+        const rect      = target.getBoundingClientRect();
+        const targetTop = Math.round(rect.top + window.scrollY - headerH);
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+        window.scrollTo({ top: Math.max(0, Math.min(targetTop, maxScroll)), behavior: 'smooth' });
+    },
+
+    /* ═══════════════════════════════════════════════════════════
+       TODOS OS LINKS ÂNCORA DA PÁGINA
+       Intercepta qualquer <a href="#secao"> fora da nav e da
+       bottom nav: footer, btn "Ouvir Agora", social links, etc.
+       Exclui links que não apontam para seções (href="#" puro,
+       href="" ou links com id de modal/login que são tratados
+       por outro script).
+       ═══════════════════════════════════════════════════════════ */
+    setupAllAnchorLinks() {
+        /* IDs de links que NÃO devem ser interceptados pelo scroll */
+        const skipIds = new Set([
+            'loginTrigger', 'loginMobileTrigger', 'footerLoginTrigger'
+        ]);
+
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            /* Pula links já gerenciados por outros setups ou por modal */
+            if (skipIds.has(link.id)) return;
+
+            const href = link.getAttribute('href');
+
+            /* Pula href="#" puro (sem seção alvo) */
+            if (href === '#') return;
+
+            link.addEventListener('click', e => {
+                /* Verifica se o alvo existe na página como seção */
+                if (href === '#home' || document.querySelector(href)) {
+                    e.preventDefault();
+                    this.scrollToSection(href);
+                }
+                /* Se não existir, deixa o browser tratar normalmente */
+            });
+        });
+    },
+
     setupNavigation() {
         if (!this.menuToggle || !this.nav) return;
+
+        /* ── Abre/fecha menu hambúrguer ─────────────── */
         this.menuToggle.addEventListener('click', e => {
             e.stopPropagation();
             this.nav.classList.toggle('active');
             const icon = this.menuToggle.querySelector('i');
             if (icon) icon.className = this.nav.classList.contains('active') ? 'bx bx-x' : 'bx bx-menu';
         });
+
+        /* ── Fecha ao clicar fora ───────────────────── */
         document.addEventListener('click', e => {
             if (this.nav.classList.contains('active') &&
                 !this.nav.contains(e.target) &&
@@ -285,6 +336,9 @@ const player = {
                 if (icon) icon.className = 'bx bx-menu';
             }
         });
+
+        /* ── Fecha ao clicar em qualquer link da nav ──
+              (o scroll é feito pelo setupAllAnchorLinks) */
         this.nav.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 this.nav.classList.remove('active');
@@ -301,53 +355,63 @@ const player = {
         const sections = document.querySelectorAll('section[id], .footer[id]');
         const links    = mobileNav.querySelectorAll('a[href^="#"]');
 
-        // ── Helper: altura real do header ─────────────────────────
-        const headerH = () => document.querySelector('.header')?.offsetHeight || 72;
+        /* ── Estado inicial ─────────────────────────── */
+        const initialHash = window.location.hash;
+        links.forEach(l => l.classList.remove('active'));
+        if (!initialHash || initialHash === '#' || initialHash === '#home') {
+            const homeLink = mobileNav.querySelector('a[href="#home"]');
+            if (homeLink) homeLink.classList.add('active');
+        } else {
+            const targetLink = mobileNav.querySelector(`a[href="${initialHash}"]`);
+            if (targetLink) targetLink.classList.add('active');
+        }
 
-        // ── Clique nos links da bottomnav ──────────────────────────
+        /* ── Clique: usa scroll unificado (resolve #contact travado) */
         links.forEach(link => {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                const href = link.getAttribute('href');
-
-                // "Início" (#home) → vai ao topo absoluto, mostrando o header
-                if (href === '#home' || href === '#') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                    const target = document.querySelector(href);
-                    if (target) {
-                        const top = target.getBoundingClientRect().top
-                                  + window.scrollY
-                                  - headerH();
-                        window.scrollTo({ top, behavior: 'smooth' });
-                    }
-                }
-
-                // Atualiza active imediatamente no clique
+                this.scrollToSection(link.getAttribute('href'));
                 links.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
             });
         });
 
-        // ── IntersectionObserver: destaca o link conforme o scroll ─
-        const obs = new IntersectionObserver(entries => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    links.forEach(l => l.classList.remove('active'));
-                    const a = mobileNav.querySelector(`a[href="#${e.target.id}"]`);
-                    if (a) a.classList.add('active');
-                }
-            });
-        }, {
-            // rootMargin negativo do topo = desconsidera a faixa do header
-            rootMargin: `-${headerH()}px 0px -50% 0px`,
-            threshold: 0
-        });
+        /* ── IntersectionObserver: destaca link conforme scroll ── */
+        let ticking = false;
+        const updateActiveFromScroll = () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const hh   = document.querySelector('.header')?.offsetHeight || 72;
+                const bnh  = mobileNav.offsetHeight || 64;
+                const viewH = window.innerHeight - hh - bnh;
 
-        sections.forEach(s => obs.observe(s));
+                let bestId   = null;
+                let bestArea = 0;
+
+                sections.forEach(section => {
+                    const rect   = section.getBoundingClientRect();
+                    const top    = Math.max(rect.top - hh, 0);
+                    const bottom = Math.min(rect.bottom - hh, viewH);
+                    const area   = Math.max(0, bottom - top);
+                    if (area > bestArea) {
+                        bestArea = area;
+                        bestId   = section.id;
+                    }
+                });
+
+                if (bestId) {
+                    links.forEach(l => l.classList.remove('active'));
+                    const active = mobileNav.querySelector(`a[href="#${bestId}"]`);
+                    if (active) active.classList.add('active');
+                }
+                ticking = false;
+            });
+        };
+
+        window.addEventListener('scroll', updateActiveFromScroll, { passive: true });
+        updateActiveFromScroll();
     }
-    // setupLoginModal() foi removido daqui.
-    // O login é gerenciado exclusivamente pela classe LoginModal em login.js
 };
 
 document.addEventListener('DOMContentLoaded', () => player.init());
