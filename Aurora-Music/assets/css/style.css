@@ -1223,8 +1223,7 @@ section,
     overflow-x: hidden;
   }
 
-  /* CORREÇÃO: scroll-padding-top alinhado com header mobile */
-  html {
+   html {
     scroll-padding-top: var(--header-height);
   }
 
@@ -1249,7 +1248,7 @@ section,
 
   .header .container {
     height: 100%;
-    padding: 0 0.875rem;
+    padding: 0 0.75rem;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -1374,7 +1373,7 @@ section,
   /* ── Player ── */
   .player-section {
     padding-top: 2rem;
-    padding-bottom: calc(var(--bottomnav-height) + 1.5rem);
+    padding-bottom: calc(var(--bottomnav-height) + 1rem);
   }
 
   .player-container { padding: 0 1rem; }
