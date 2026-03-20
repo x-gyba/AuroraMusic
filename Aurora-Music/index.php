@@ -19,11 +19,6 @@ use Models\Music;
 $todasMusicas = [];
 $erroMusicas  = null;
 
-// REMOVIDO: obterMusicasDoPasta()
-// A função foi removida porque causava exibição de arquivos órfãos
-// (arquivos físicos sem registro no banco) quando a tabela estava vazia.
-// A fonte de verdade é exclusivamente o banco de dados.
-
 try {
     $musicModel   = new Music();
     $todasMusicas = $musicModel->getAllPublic();
@@ -263,7 +258,7 @@ if (!empty($todasMusicas)):
     <div class="contact-wrapper">
       <div class="contact-info-cards">
         <div class="contact-card">
-          <div class="contact-icon"><i class="bx bx-user"></i></div>
+          <div class="contact-icon"><i class="bx bx-envelope"></i></div>
           <h3>Email</h3><p>contato@auroramusic.com</p>
           <a href="mailto:contato@auroramusic.com" class="contact-link">Enviar Email</a>
         </div>
@@ -350,7 +345,7 @@ if (!empty($todasMusicas)):
       <div class="footer-section">
         <h4>Contato Rápido</h4>
         <ul class="contact-info">
-          <li><i class="bx bx-user"></i> contato@auroramusic.com</li>
+          <li><i class="bx bx-envelope"></i> contato@auroramusic.com</li>
           <li><i class="bx bx-map"></i> Teresópolis, RJ - Brasil</li>
         </ul>
       </div>
@@ -368,11 +363,11 @@ if (!empty($todasMusicas)):
 <nav class="mobile-nav-scroll">
   <div class="nav-scroll-container">
     <a href="#home" class="active"><i class="bx bx-home"></i><span>Início</span></a>
-    <a href="#music"><i class="bx bx-music"></i><span>Músicas</span></a>
+    <a href="#music"><i class="bx bxs-music"></i><span>Músicas</span></a>
     <a href="#about"><i class="bx bx-info-circle"></i><span>Sobre</span></a>
     <a href="#precos"><i class="bx bx-dollar-circle"></i><span>Preços</span></a>
-    <a href="#contact"><i class="bx bx-user"></i><span>Contato</span></a>
-    <a href="#" id="loginMobileTrigger"><i class="bx bx-lock-alt"></i><span>Login</span></a>
+    <a href="#" id="loginMobileTrigger"><i class="bx bx-user"></i><span>Login</span></a>
+    <a href="#contact"><i class="bx bx-message-rounded"></i><span>Contato</span></a>
   </div>
 </nav>
 

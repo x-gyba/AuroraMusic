@@ -1,4 +1,4 @@
-/**
+ /**
  * ============================================================
  * SCRIPT.JS - AURORA MUSIC 2026
  * ============================================================
@@ -13,9 +13,8 @@ const player = {
     isShuffle: false,
     repeatMode: 0,
 
-    init() {
-        /* Remove hash residual da URL sem recarregar nem rolar a página.
-           O browser não fará scroll automático para nenhuma âncora. */
+init() {
+        console.log('[NAV DEBUG] player.init() START');
         history.replaceState(null, '', window.location.pathname + window.location.search);
 
         this.cacheElements();
@@ -23,13 +22,16 @@ const player = {
         if (this.playlist.length > 0) this.loadTrack(0);
         this.setupEvents();
         this.setupSearch();
-        this.setupAllAnchorLinks(); /* intercepta TODOS os links âncora da página */
+        console.log('[NAV DEBUG] Calling setupNavigation()');
         this.setupNavigation();
+        this.setupNavShortcuts();
+        this.setupAllAnchorLinks();
         this.setupMobileBottomNav();
         this.setupBluetooth();
+        console.log('[NAV DEBUG] player.init() COMPLETE');
     },
 
-    cacheElements() {
+cacheElements() {
         this.trackName     = document.getElementById('trackName');
         this.artistName    = document.getElementById('artistName');
         this.playBtn       = document.getElementById('playBtn');
@@ -43,13 +45,23 @@ const player = {
         this.searchInput   = document.getElementById('searchInput');
         this.nav           = document.querySelector('.nav');
         this.menuToggle    = document.querySelector('.menu-toggle');
+        
+        // DEBUG NAVBAR
+        console.log('[NAV DEBUG] Elements cached:', {
+            nav: !!this.nav,
+            menuToggle: !!this.menuToggle,
+            navClass: this.nav?.className,
+            toggleClass: this.menuToggle?.className
+        });
+        
+        this.header        = document.querySelector('.header');
         this.btBadge       = document.getElementById('bluetoothBadge');
         this.btLabel       = document.getElementById('bluetoothLabel');
     },
 
     /* ═══════════════════════════════════════════
        BLUETOOTH BADGE
-       ═══════════════════════════════════════════ */
+    ═══════════════════════════════════════════ */
     setupBluetooth() {
         const isSecure = window.location.protocol === 'https:' ||
                          window.location.hostname === 'localhost' ||
@@ -98,7 +110,7 @@ const player = {
 
     /* ═══════════════════════════════
        PLAYLIST
-       ═══════════════════════════════ */
+    ═══════════════════════════════ */
     setupPlaylist() {
         const items = document.querySelectorAll('.playlist-item');
         this.playlist = Array.from(items).map(item => ({
@@ -135,7 +147,7 @@ const player = {
 
     /* ═══════════════════════════════
        EVENTOS
-       ═══════════════════════════════ */
+    ═══════════════════════════════ */
     setupEvents() {
         if (this.playBtn) this.playBtn.onclick = () => this.togglePlay();
 
@@ -259,12 +271,31 @@ const player = {
         });
     },
 
+    /* ═══════════════════════════════════════════
+       FECHAR MENU
+    ═══════════════════════════════════════════ */
+    closeMenu() {
+        if (!this.nav) return;
+        this.nav.classList.remove('active');
+        document.body.classList.remove('nav-open');
+        const icon = this.menuToggle?.querySelector('i');
+        if (icon) icon.className = 'bx bx-menu';
+    },
+
+    setupNavShortcuts() {
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && this.nav.classList.contains('active')) {
+                this.closeMenu();
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) this.closeMenu();
+        });
+    },
+
     /* ═══════════════════════════════════════════════════════
-       SCROLL UNIFICADO — usado pela nav superior e bottom nav
-       Resolve seções no final da página (ex: #contact) que
-       não chegam ao topo porque não há conteúdo suficiente
-       abaixo. Calcula o offset real e limita ao maxScroll.
-       ═══════════════════════════════════════════════════════ */
+       SCROLL UNIFICADO
+    ═══════════════════════════════════════════════════════ */
     scrollToSection(href) {
         if (!href || href === '#home' || href === '#') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -273,81 +304,92 @@ const player = {
         const target = document.querySelector(href);
         if (!target) return;
 
-        const headerH   = document.querySelector('.header')?.offsetHeight || 72;
-        const rect      = target.getBoundingClientRect();
-        const targetTop = Math.round(rect.top + window.scrollY - headerH);
+        const headerH   = this.header?.offsetHeight || 72;
+        const targetTop = target.getBoundingClientRect().top + window.scrollY - headerH;
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 
-        window.scrollTo({ top: Math.max(0, Math.min(targetTop, maxScroll)), behavior: 'smooth' });
-    },
-
-    /* ═══════════════════════════════════════════════════════════
-       TODOS OS LINKS ÂNCORA DA PÁGINA
-       Intercepta qualquer <a href="#secao"> fora da nav e da
-       bottom nav: footer, btn "Ouvir Agora", social links, etc.
-       Exclui links que não apontam para seções (href="#" puro,
-       href="" ou links com id de modal/login que são tratados
-       por outro script).
-       ═══════════════════════════════════════════════════════════ */
-    setupAllAnchorLinks() {
-        /* IDs de links que NÃO devem ser interceptados pelo scroll */
-        const skipIds = new Set([
-            'loginTrigger', 'loginMobileTrigger', 'footerLoginTrigger'
-        ]);
-
-        document.querySelectorAll('a[href^="#"]').forEach(link => {
-            /* Pula links já gerenciados por outros setups ou por modal */
-            if (skipIds.has(link.id)) return;
-
-            const href = link.getAttribute('href');
-
-            /* Pula href="#" puro (sem seção alvo) */
-            if (href === '#') return;
-
-            link.addEventListener('click', e => {
-                /* Verifica se o alvo existe na página como seção */
-                if (href === '#home' || document.querySelector(href)) {
-                    e.preventDefault();
-                    this.scrollToSection(href);
-                }
-                /* Se não existir, deixa o browser tratar normalmente */
-            });
+        window.scrollTo({
+            top: Math.max(0, Math.min(Math.round(targetTop), maxScroll)),
+            behavior: 'smooth'
         });
     },
 
+    /* ═══════════════════════════════════════════════════════
+       NAV SUPERIOR
+    ═══════════════════════════════════════════════════════ */
     setupNavigation() {
         if (!this.menuToggle || !this.nav) return;
 
-        /* ── Abre/fecha menu hambúrguer ─────────────── */
+        console.log('[NAV DEBUG] setupNavigation() STARTED', { menuToggle: !!this.menuToggle, nav: !!this.nav });
+        if (!this.menuToggle || !this.nav) {
+            console.error('[NAV DEBUG ERROR] Missing elements:', { menuToggle: this.menuToggle, nav: this.nav });
+            return;
+        }
+
+        /* Abre/fecha menu hambúrguer - APENAS MOBILE */
         this.menuToggle.addEventListener('click', e => {
+            console.log('[NAV DEBUG] menu-toggle CLICKED', { innerWidth: window.innerWidth });
             e.stopPropagation();
-            this.nav.classList.toggle('active');
+            if (window.innerWidth > 768) {
+                console.log('[NAV DEBUG] Desktop - ignoring toggle');
+                return;
+            }
+            
+            const wasActive = this.nav.classList.contains('active');
+            const isActive = this.nav.classList.toggle('active');
+            document.body.classList.toggle('nav-open', isActive);
             const icon = this.menuToggle.querySelector('i');
-            if (icon) icon.className = this.nav.classList.contains('active') ? 'bx bx-x' : 'bx bx-menu';
+            if (icon) {
+                icon.className = isActive ? 'bx bx-x' : 'bx bx-menu';
+                console.log('[NAV DEBUG] TOGGLED', { wasActive, isActive, iconUpdated: true });
+            } else {
+                console.warn('[NAV DEBUG] No icon found in menuToggle');
+            }
         });
 
-        /* ── Fecha ao clicar fora ───────────────────── */
+        /* Fecha ao clicar fora */
         document.addEventListener('click', e => {
             if (this.nav.classList.contains('active') &&
                 !this.nav.contains(e.target) &&
                 !this.menuToggle.contains(e.target)) {
-                this.nav.classList.remove('active');
-                const icon = this.menuToggle.querySelector('i');
-                if (icon) icon.className = 'bx bx-menu';
+                this.closeMenu();
             }
         });
 
-        /* ── Fecha ao clicar em qualquer link da nav ──
-              (o scroll é feito pelo setupAllAnchorLinks) */
+        /* Links da nav — APENAS fecha o menu.
+           O scroll é feito pelo setupAllAnchorLinks
+           que já intercepta todos os href="#..." */
         this.nav.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
-                this.nav.classList.remove('active');
-                const icon = this.menuToggle.querySelector('i');
-                if (icon) icon.className = 'bx bx-menu';
+                this.closeMenu();
             });
         });
     },
 
+    /* ═══════════════════════════════════════════════════════
+       TODOS OS LINKS ÂNCORA — incluindo os da nav superior
+    ═══════════════════════════════════════════════════════ */
+    setupAllAnchorLinks() {
+        const skipIds = new Set(['loginTrigger', 'loginMobileTrigger', 'footerLoginTrigger']);
+
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            if (skipIds.has(link.id)) return;
+
+            const href = link.getAttribute('href');
+            if (href === '#') return;
+
+            link.addEventListener('click', e => {
+                if (href === '#home' || document.querySelector(href)) {
+                    e.preventDefault();
+                    this.scrollToSection(href);
+                }
+            });
+        });
+    },
+
+    /* ═══════════════════════════════════════════════════════
+       BOTTOM NAV MOBILE
+    ═══════════════════════════════════════════════════════ */
     setupMobileBottomNav() {
         const mobileNav = document.querySelector('.mobile-nav-scroll');
         if (!mobileNav) return;
@@ -355,7 +397,7 @@ const player = {
         const sections = document.querySelectorAll('section[id], .footer[id]');
         const links    = mobileNav.querySelectorAll('a[href^="#"]');
 
-        /* ── Estado inicial ─────────────────────────── */
+        /* Estado inicial */
         const initialHash = window.location.hash;
         links.forEach(l => l.classList.remove('active'));
         if (!initialHash || initialHash === '#' || initialHash === '#home') {
@@ -366,7 +408,7 @@ const player = {
             if (targetLink) targetLink.classList.add('active');
         }
 
-        /* ── Clique: usa scroll unificado (resolve #contact travado) */
+        /* Clique */
         links.forEach(link => {
             link.addEventListener('click', e => {
                 e.preventDefault();
@@ -376,14 +418,14 @@ const player = {
             });
         });
 
-        /* ── IntersectionObserver: destaca link conforme scroll ── */
+        /* Destaca link conforme scroll */
         let ticking = false;
         const updateActiveFromScroll = () => {
             if (ticking) return;
             ticking = true;
             requestAnimationFrame(() => {
-                const hh   = document.querySelector('.header')?.offsetHeight || 72;
-                const bnh  = mobileNav.offsetHeight || 64;
+                const hh    = this.header?.offsetHeight || 72;
+                const bnh   = mobileNav.offsetHeight || 64;
                 const viewH = window.innerHeight - hh - bnh;
 
                 let bestId   = null;
