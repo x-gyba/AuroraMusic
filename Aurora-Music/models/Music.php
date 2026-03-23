@@ -47,25 +47,7 @@ class Music
         }
     }
 
-    /**
-     * Retorna uma música específica pelo ID.
-     */
-    public function getById(int $id, int $userId): ?array
-    {
-        try {
-            $query = "SELECT * FROM {$this->table}
-                      WHERE id = :id AND usuario_id = :usuario_id";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
-            $stmt->execute();
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ?: null;
-        } catch (PDOException $e) {
-            error_log("Erro ao obter música por ID: " . $e->getMessage());
-            return null;
-        }
-    }
+
 
     /**
      * Retorna estatísticas básicas de um usuário:
@@ -153,54 +135,14 @@ class Music
         }
     }
 
-    /**
-     * Deleta uma música do banco e seus arquivos físicos.
-     * CORREÇÃO: usa caminho_arquivo diretamente (sem basename),
-     * pois o campo já contém o caminho relativo ex: music/arquivo.mp3
-     */
     public function delete(int $id, int $userId): bool
     {
         try {
-            // Recupera caminhos ANTES de deletar do banco
-            $stmt = $this->conn->prepare(
-                "SELECT caminho_arquivo, caminho_imagem FROM {$this->table}
-                 WHERE id = :id AND usuario_id = :usuario_id"
-            );
+            $query = "DELETE FROM {$this->table} WHERE id = :id AND usuario_id = :usuario_id";
+            $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
-            $stmt->execute();
-            $music = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Deleta do banco
-            $deleteStmt = $this->conn->prepare(
-                "DELETE FROM {$this->table} WHERE id = :id AND usuario_id = :usuario_id"
-            );
-            $deleteStmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $deleteStmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
-            $success = $deleteStmt->execute();
-
-            // Deleta arquivos físicos
-            if ($success && $music) {
-                if (!empty($music['caminho_arquivo'])) {
-                    $path = __DIR__ . '/../' . $music['caminho_arquivo'];
-                    if (file_exists($path)) {
-                        unlink($path);
-                    } else {
-                        error_log("MP3 não encontrado para deletar: " . $path);
-                    }
-                }
-                if (!empty($music['caminho_imagem'])) {
-                    $path = __DIR__ . '/../' . $music['caminho_imagem'];
-                    if (file_exists($path)) {
-                        unlink($path);
-                    } else {
-                        error_log("Capa não encontrada para deletar: " . $path);
-                    }
-                }
-            }
-
-            return $success;
-
+            return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Erro ao deletar música: " . $e->getMessage());
             return false;
