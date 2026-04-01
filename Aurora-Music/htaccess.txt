@@ -1,0 +1,49 @@
+RewriteEngine On
+RewriteBase /Aurora-Music/
+Options -Indexes
+
+# ─── 1. Redirects 301: remove /views/ e .php da URL ──────────────────────────
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/index\.php[\s?] [NC]
+RewriteRule ^index\.php$ /Aurora-Music/ [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/dashboard\.php[\s?] [NC]
+RewriteRule ^views/dashboard\.php$ /Aurora-Music/dashboard [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/upload\.php[\s?] [NC]
+RewriteRule ^views/upload\.php$ /Aurora-Music/upload [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/login\.php[\s?] [NC]
+RewriteRule ^views/login\.php$ /Aurora-Music/login [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/logout\.php[\s?] [NC]
+RewriteRule ^views/logout\.php$ /Aurora-Music/logout [R=301,L]
+
+# ─── 2. Arquivos PHP do dashboard (upload-promo, delete-promo, etc.) ──────────
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/upload-promo\.php[\s?] [NC]
+RewriteRule ^views/upload-promo\.php$ /Aurora-Music/upload-promo [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/Aurora-Music/views/delete-promo\.php[\s?] [NC]
+RewriteRule ^views/delete-promo\.php$ /Aurora-Music/delete-promo [R=301,L]
+
+# ─── 3. Serve arquivos e pastas reais diretamente ─────────────────────────────
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# ─── 4. Rewrite interno: URL limpa → arquivo .php real ────────────────────────
+RewriteRule ^$                      index.php              [L]
+RewriteRule ^dashboard/?$           views/dashboard.php    [L]
+RewriteRule ^upload/?$              views/upload.php       [L]
+RewriteRule ^login/?$               views/login.php        [L]
+RewriteRule ^logout/?$              views/logout.php       [L]
+RewriteRule ^upload-promo/?$        views/upload-promo.php [L]
+RewriteRule ^delete-promo/?$        views/delete-promo.php [L]
+
+# ─── 5. Headers: sem cache ────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </FilesMatch>
+</IfModule>
