@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Aurora Music — script.js
+   Aurora Music — script.js (Versão Corrigida: Scroll + Menu + Player)
  ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,27 +28,69 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav            = document.querySelector('.nav');
 
   if (menuToggleBtn && nav) {
+    const menuIcon = menuToggleBtn.querySelector('i');
+
     menuToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      nav.classList.toggle('active');
+      const isActive = nav.classList.toggle('active');
       document.body.classList.toggle('nav-open');
+      if (menuIcon) {
+        menuIcon.className = isActive ? 'bx bx-x' : 'bx bx-menu';
+      }
     });
 
-    // Fecha ao clicar em qualquer link do nav
     nav.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         nav.classList.remove('active');
         document.body.classList.remove('nav-open');
+        if (menuIcon) menuIcon.className = 'bx bx-menu';
       });
     });
 
-    // Fecha ao clicar fora
     document.addEventListener('click', (e) => {
       if (!nav.contains(e.target) && !menuToggleBtn.contains(e.target)) {
         nav.classList.remove('active');
         document.body.classList.remove('nav-open');
+        if (menuIcon) menuIcon.className = 'bx bx-menu';
       }
     });
+  }
+
+  /* ── Scroll Helpers ──────────────────────────────────────── */
+
+  /**
+   * Retorna a altura real do header fixo em pixels.
+   * Usa getComputedStyle para pegar o valor atual da CSS var,
+   * e converte para número.
+   */
+  function getHeaderHeight() {
+    const headerEl = document.querySelector('.header');
+    if (headerEl) return headerEl.getBoundingClientRect().height;
+    // fallback: lê a CSS var
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue('--header-height').trim();
+    return parseFloat(raw) * 16 || 64;
+  }
+
+  /**
+   * Rola suavemente até o elemento, compensando o header fixo.
+   * No mobile existe também a bottom nav, mas ela não interfere
+   * no topo do scroll — apenas no padding inferior.
+   */
+  function scrollToSection(hash) {
+    if (!hash) return;
+    const targetEl = document.querySelector(hash);
+    if (!targetEl) return;
+
+    const headerH  = getHeaderHeight();
+    const extraGap = 8; // pequena folga visual
+    const top      = targetEl.getBoundingClientRect().top
+                   + window.scrollY
+                   - headerH
+                   - extraGap;
+
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    history.pushState(null, '', window.location.pathname);
   }
 
   /* ── Bottom Nav: destaque do item ativo por scroll ────────── */
@@ -56,23 +98,63 @@ document.addEventListener('DOMContentLoaded', () => {
   const sections       = document.querySelectorAll('section[id], .footer[id]');
 
   function updateActiveBottomNav() {
+    const scrollMid = window.scrollY + window.innerHeight * 0.4;
     let currentSection = '';
+
     sections.forEach(sec => {
-      const top = sec.getBoundingClientRect().top;
-      if (top <= window.innerHeight * 0.5) {
+      if (sec.offsetTop <= scrollMid) {
         currentSection = sec.id;
       }
     });
+
     bottomNavLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === '#' + currentSection) {
-        link.classList.add('active');
+      link.classList.toggle(
+        'active',
+        link.getAttribute('href') === '#' + currentSection
+      );
+    });
+  }
+
+  /* ── Inicializa navegação sem hash na URL ────────────────── */
+  function initNavigation() {
+    const allLinks = document.querySelectorAll(
+      'nav a[href^="#"], .mobile-nav-scroll a[href^="#"], .footer a[href^="#"], a.btn-primary[href^="#"]'
+    );
+
+    allLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (!href || href === '#') return;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        scrollToSection(href);
+      });
+    });
+
+    // Se página abriu com hash na URL, rola corretamente
+    if (window.location.hash) {
+      const hash = window.location.hash;
+      // Pequeno delay para garantir que o layout já renderizou
+      setTimeout(() => {
+        scrollToSection(hash);
+        history.replaceState(null, '', window.location.pathname);
+      }, 100);
+    }
+
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash) {
+        scrollToSection(window.location.hash);
+        history.replaceState(null, '', window.location.pathname);
       }
+    });
+
+    window.addEventListener('popstate', () => {
+      history.replaceState(null, '', window.location.pathname);
     });
   }
 
   window.addEventListener('scroll', updateActiveBottomNav, { passive: true });
   updateActiveBottomNav();
+  initNavigation();
 
   /* ── Album Art Rotation ───────────────────────────────────── */
   const albumArtImg = document.getElementById('albumCover');
@@ -91,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const ACTIVE_GREEN   = '#00ff00';
+  const ACTIVE_GREEN = '#00ff00';
 
   /* ── Estados ─────────────────────────────────────────────── */
   let allItems   = Array.from(document.querySelectorAll('.playlist-item'));
@@ -101,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let isShuffle  = false;
   let isRepeat   = false;
 
-  /* Lista para armazenar os arquivos encontrados em promo */
   let promoFiles = [];
 
   /* ── Publicidade ── */
@@ -109,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const AD_INTERVAL = 3;
   let isPlayingAd = false;
 
-  /* Busca a lista de arquivos do controller PHP */
   async function fetchPromos() {
     try {
       const response = await fetch('controllers/get_promos.php');
@@ -188,9 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function nextTrack() {
     if (isPlayingAd) return;
-
     tracksPlayedSinceAd++;
-
     if (tracksPlayedSinceAd >= AD_INTERVAL) {
       tracksPlayedSinceAd = 0;
       const nextIdx = (currentIdx + 1) % playlist.length;
@@ -277,7 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── Suporte Web Bluetooth API ────────────────────────────── */
-
 async function initBluetoothSupport() {
   const btStatus = document.getElementById('btStatus');
   if (!btStatus) return;
@@ -302,13 +379,11 @@ async function initBluetoothSupport() {
 
   document.getElementById('btnConnectBT').addEventListener('click', async () => {
     try {
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true
-      });
+      const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
 
       btStatus.innerHTML = `
         <i class="bx bx-headset"></i>
-        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75px;">
+        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:75px;">
           ${device.name || 'Fone Conectado'}
         </span>
       `;
@@ -318,7 +393,7 @@ async function initBluetoothSupport() {
       });
 
     } catch (error) {
-      // Cancelado pelo usuário ou erro silencioso
+      // Cancelado pelo usuário — silencioso
     }
   });
 }

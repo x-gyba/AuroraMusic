@@ -42,9 +42,10 @@ try {
 
 <!-- Trava o botão Voltar: impede sair do index pelo histórico -->
 <script>
-    history.pushState(null, '', window.location.href);
+    const cleanUrl = window.location.origin + window.location.pathname;
+    history.replaceState(null, '', cleanUrl);
     window.addEventListener('popstate', function() {
-        history.pushState(null, '', window.location.href);
+        history.pushState(null, '', cleanUrl);
     });
 </script>
 
