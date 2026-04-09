@@ -72,14 +72,6 @@ if (is_dir($promoDir)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Aurora-Music/assets/css/dashboard.css">
 
-    <!-- Trava o botão Voltar: impede sair do dashboard pelo histórico -->
-    <script>
-        history.pushState(null, '', window.location.href);
-        window.addEventListener('popstate', function() {
-            history.pushState(null, '', window.location.href);
-        });
-    </script>
-
     <style>
         #sidebarOverlay {
             display: none;

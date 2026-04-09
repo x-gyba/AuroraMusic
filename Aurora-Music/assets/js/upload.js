@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await resp.json();
             if (!data.logged_in) {
                 showMessage('Sessão expirada. Redirecionando...', 'error');
-                setTimeout(() => { window.location.href = '../index.php'; }, 2000);
+                setTimeout(() => { window.location.href = '/Aurora-Music/'; }, 2000);
             }
         } catch (err) {
             console.warn('Auth check failed:', err);

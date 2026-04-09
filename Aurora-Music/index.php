@@ -37,7 +37,7 @@ try {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Aurora Music - Sua Plataforma Musical</title>
 
 <!-- Trava o botão Voltar: impede sair do index pelo histórico -->
@@ -174,17 +174,17 @@ if (!empty($todasMusicas)):
         }
         $cover = $musica['caminho_imagem'] ?? '';
 ?>
-        <li class="playlist-item"
-            data-src="music/<?= htmlspecialchars($arquivo) ?>"
-            data-display="<?= htmlspecialchars($musica['nome_exibicao']) ?>"
-            data-artist="<?= htmlspecialchars($artista) ?>"
-            data-cover="<?= htmlspecialchars($cover) ?>">
-          <div class="item-icon"><i class="bx bx-play-circle"></i></div>
-          <div class="item-text">
-            <span class="item-title"><?= htmlspecialchars($musica['nome_exibicao']) ?></span>
-            <small class="item-artist"><?= htmlspecialchars($artista) ?></small>
-          </div>
-        </li>
+       <li class="playlist-item"
+    data-src="music/<?= htmlspecialchars($arquivo) ?>"
+    data-display="<?= htmlspecialchars($musica['nome_exibicao']) ?>"
+    data-artist="<?= htmlspecialchars($musica['artista']) ?>" 
+    data-cover="<?= htmlspecialchars($musica['caminho_imagem'] ?? 'assets/images/cover.png') ?>">
+  <div class="item-icon"><i class="bx bx-play-circle"></i></div>
+  <div class="item-text">
+    <span class="item-title"><?= htmlspecialchars($musica['nome_exibicao']) ?></span>
+    <small class="item-artist"><?= htmlspecialchars($musica['artista']) ?></small>
+  </div>
+</li>
 <?php endforeach; endif; ?>
 <?php if (!$temMusica): ?>
         <li class="no-music-item">
@@ -336,7 +336,7 @@ if (!empty($todasMusicas)):
 </div>
 
 <footer class="footer" id="footer">
-  <div class="container">
+  <div class="footer-inner">
     <div class="footer-content">
       <div class="footer-section">
         <div class="footer-logo"><img src="assets/images/logo.png" alt="Aurora Music Logo"><h3>Aurora Music</h3></div>
