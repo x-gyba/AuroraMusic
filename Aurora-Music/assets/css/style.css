@@ -66,7 +66,7 @@ section,
   scroll-margin-top: var(--header-height);
 }
 
-/* ── Container base ── */
+/*  Container  */
 .container {
   width: 100%;
   max-width: var(--content-max);
@@ -82,9 +82,7 @@ section,
   display: none;
 }
 
-/* ══════════════════════════════════════════
-   HEADER
-══════════════════════════════════════════ */
+/* Header */
 .header {
   background: var(--deep-blue);
   padding: 0.5rem 0;
@@ -169,6 +167,7 @@ section,
   0%, 100% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-0.5rem) scale(1.02);
   }
@@ -187,9 +186,7 @@ section,
   opacity: 0.9;
 }
 
-/* ══════════════════════════════════════════
-   NAVBAR — Desktop
-══════════════════════════════════════════ */
+/* Navbar Desktop */
 .nav {
   display: flex;
   flex-direction: row;
@@ -253,9 +250,7 @@ section,
   line-height: 1;
 }
 
-/* ══════════════════════════════════════════
-   HERO
-══════════════════════════════════════════ */
+/* Hero Desktop */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -311,9 +306,8 @@ section,
   transform: scale(1.05);
 }
 
-/* ══════════════════════════════════════════
-   PLAYER
-══════════════════════════════════════════ */
+/* Player Desktop  */
+
 .player-section {
   display: flex;
   flex-direction: column;
@@ -341,7 +335,7 @@ section,
   width: 100%;
 }
 
-/* ── Album ── */
+/* Album  */
 .album-art {
   width: 9.375rem;
   height: 9.375rem;
@@ -371,7 +365,7 @@ section,
   }
 }
 
-/* ── Track Info ── */
+/* Track Info */
 .track-info {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -390,7 +384,7 @@ section,
   opacity: 0.9;
 }
 
-/* ── Barra de Progresso ── */
+/*  Barra de Progresso */
 .progress-container {
   display: flex;
   align-items: center;
@@ -418,7 +412,7 @@ section,
   min-width: 2.2rem;
 }
 
-/* ── Controles ── */
+/*  Controles  */
 .controls {
   display: flex;
   justify-content: center;
@@ -448,7 +442,7 @@ section,
   font-size: 2rem;
 }
 
-/* ── Play Button ── */
+/*  Play Button  */
 .play-btn {
   width: 4.3rem;
   height: 4.3rem;
@@ -465,7 +459,7 @@ section,
   transform: scale(1.05);
 }
 
-/* ── Volume ── */
+/*  Volume  */
 .volume-control {
   display: flex;
   align-items: center;
@@ -502,7 +496,7 @@ section,
   cursor: pointer;
 }
 
-/* ── Bluetooth ── */
+/* Bluetooth  */
 .bluetooth-badge {
   display: none;
   align-items: center;
@@ -540,13 +534,14 @@ section,
     opacity: 0;
     transform: translateY(0.25rem);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* ── Playlist ── */
+/*  Playlist  */
 .section-title-playlist {
   margin: 2.5rem 0 1.25rem;
   font-size: 1.4rem;
@@ -607,19 +602,15 @@ section,
   opacity: 0.6;
 }
 
-/* ══════════════════════════════════════════
-   SOBRE
-══════════════════════════════════════════ */
+/* Sobre Section */
 .about-section {
   padding: 4rem 0 2.5rem;
-  background: linear-gradient(
-    to bottom,
-    #001845 0%,
-    #003d82 30%,
-    #0066cc 60%,
-    #0661f3 85%,
-    #1d4ed8 100%
-  );
+  background: linear-gradient(to bottom,
+      #001845 0%,
+      #003d82 30%,
+      #0066cc 60%,
+      #0661f3 85%,
+      #1d4ed8 100%);
 }
 
 .about-content {
@@ -728,9 +719,7 @@ section,
   z-index: 1;
 }
 
-/* ══════════════════════════════════════════
-   PREÇOS
-══════════════════════════════════════════ */
+/* Precos */
 .pricing-section {
   padding: 4rem 0;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(0, 0, 0, 0.35));
@@ -932,9 +921,7 @@ section,
   border-color: var(--yellow);
 }
 
-/* ══════════════════════════════════════════
-   CONTATO
-══════════════════════════════════════════ */
+/* Contato Section */
 .contact-section {
   padding: 4rem 0;
   background: linear-gradient(to bottom, #0a1628 0%, #1a2942 50%, #2a3c5a 100%);
@@ -955,7 +942,6 @@ section,
   margin-bottom: 3.75rem;
 }
 
-/* FIX: wrapper sem max-width para não comprimir os cards de contato */
 .contact-wrapper {
   display: grid;
   grid-template-columns: 1fr;
@@ -965,7 +951,6 @@ section,
   margin: 0 auto;
 }
 
-/* FIX: 2 colunas no desktop — 4 cards em linha ficavam muito apertados */
 .contact-info-cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1120,9 +1105,7 @@ section,
   font-size: 1.3rem;
 }
 
-/* ══════════════════════════════════════════
-   FOOTER
-══════════════════════════════════════════ */
+/* Footer  */
 .footer {
   background: #111111;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1265,9 +1248,7 @@ section,
   font-size: 0.8rem;
 }
 
-/* ══════════════════════════════════════════
-   MOBILE ≤ 768px
-══════════════════════════════════════════ */
+/* Mobile ≤ 768px */
 @media (max-width: 768px) {
   :root {
     --header-height: 3.5rem;
@@ -1282,9 +1263,7 @@ section,
   body {
     width: 100%;
     overflow-x: hidden;
-    padding-bottom: calc(
-      var(--bottomnav-height) + 0.25rem + env(safe-area-inset-bottom, 0px)
-    );
+    padding-bottom: calc(var(--bottomnav-height) + 0.25rem + env(safe-area-inset-bottom, 0px));
   }
 
   body.nav-open {
@@ -1297,15 +1276,17 @@ section,
     scroll-margin-top: var(--header-height);
   }
 
-  /* FIX: padding via container, não no elemento pai */
   .container {
     padding: 0 1rem !important;
   }
 
-  /* ── Header ── */
+  /*  Header */
   .header {
     height: var(--header-height);
     padding: 0;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
   }
 
   .header .container {
@@ -1349,7 +1330,7 @@ section,
     display: none;
   }
 
-  /* ── Hamburger ── */
+  /*  Hamburger */
   .menu-toggle {
     display: flex;
     align-items: center;
@@ -1361,7 +1342,7 @@ section,
     z-index: 1002;
   }
 
-  /* ── Nav lateral ── */
+  /*  Nav lateral */
   .nav {
     position: fixed;
     top: calc(var(--header-height) + 1rem);
@@ -1402,69 +1383,59 @@ section,
     display: none;
   }
 
-  /* ── Hero ── */
-.hero {
-  min-height: calc(var(--vh, 1vh) * 100 - var(--header-height));
-  width: 100%;
-  display: grid;
-  align-items: center;     
-  justify-items: center;    
-  padding: 0 1rem;
-  background: var(--deep-blue);
-  box-sizing: border-box;
-}
+  /*  Hero Mobile */
+  .hero {
+    min-height: calc(100dvh - var(--header-height) - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    background: var(--deep-blue);
+  }
 
 
-.hero .container {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+  .hero .container {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
 
-.hero-content {
-  display: grid;
-  place-items: center;       /* Centraliza vertical e horizontal */
-  text-align: center;
-  gap: 1.25rem;
-  
-  width: 100%;               /* Ocupa toda a largura */
-  max-width: 340px;          /* Limite proporcional */
-  margin-left: auto;         /* Empurra da esquerda */
-  margin-right: auto;        /* Empurra da direita */
-}
+  .hero-content {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
+  .hero-content h2 {
+    font-size: clamp(1.6rem, 5.5vw, 2.2rem);
+    line-height: 1.2;
+    margin: 0;
+  }
 
-.hero-content h2 {
-  font-size: clamp(1.6rem, 5.5vw, 2.2rem);
-  line-height: 1.2;
-  margin: 0;
-}
+  .hero-content p {
+    font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+    opacity: 0.9;
+    margin: 0;
+    max-width: 340px;
+    /* Mantém alinhado com o título */
+  }
 
-.hero-content p {
-  font-size: clamp(0.95rem, 3.5vw, 1.1rem);
-  opacity: 0.9;
-  margin: 0;
-  max-width: 340px;          /* Mantém alinhado com o título */
-}
-
-.btn-primary {
-  padding: 0.75rem 1.6rem;
-  font-size: 0.95rem;
-  text-decoration: none;
-  margin: 0 auto;            /* Reforça centralização */
-}
+  .btn-primary {
+    padding: 0.75rem 1.6rem;
+    font-size: 0.95rem;
+    text-decoration: none;
+    margin: 0 auto;
+    /* Reforça centralização */
+  }
 
 
 
 }
-
-
-
-
-
-
-
-
