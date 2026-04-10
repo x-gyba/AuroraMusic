@@ -66,6 +66,8 @@ section,
   scroll-margin-top: var(--header-height);
 }
 
+
+
 /*  Container  */
 .container {
   width: 100%;
@@ -611,7 +613,9 @@ section,
       #0066cc 60%,
       #0661f3 85%,
       #1d4ed8 100%);
-}
+      width:100%;
+      margin: 0 auto 1rem;
+      }
 
 .about-content {
   text-align: center;
@@ -630,13 +634,14 @@ section,
 .about-content .section-title::after {
   content: "";
   position: absolute;
-  bottom: -0.625rem;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 7.5rem;
   height: 0.25rem;
   background: linear-gradient(90deg, #4d94ff, #0661f3);
   border-radius: 0.125rem;
+  
 }
 
 .about-grid {
@@ -741,14 +746,12 @@ section,
 .pricing-section .section-title::after {
   content: "";
   position: absolute;
-  bottom: -0.75rem;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 6.25rem;
   height: 0.25rem;
-  background: var(--primary-color);
-  border-radius: 999px;
-}
+ }
 
 .pricing-grid {
   display: grid;
@@ -923,7 +926,7 @@ section,
 
 /* Contato Section */
 .contact-section {
-  padding: 4rem 0;
+  padding: 2rem 0;
   background: linear-gradient(to bottom, #0a1628 0%, #1a2942 50%, #2a3c5a 100%);
 }
 
@@ -1345,7 +1348,7 @@ section,
   /*  Nav lateral */
   .nav {
     position: fixed;
-    top: calc(var(--header-height) + 1rem);
+    top: calc(var(--header-height) + 0.8rem);
     left: -100%;
     width: 70vw;
     max-width: 15rem;
