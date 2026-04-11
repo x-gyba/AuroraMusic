@@ -317,12 +317,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Prevent browser back navigation from leaving the landing page.
-  history.replaceState(null, "", window.location.href);
-  history.pushState(null, "", window.location.href);
-  window.addEventListener("popstate", () => {
+  // Bloqueia o botão Voltar APENAS na página principal (index.php / raiz Aurora-Music).
+  // Em outras páginas (dashboard.php, login.php, etc.) a navegação funciona normalmente.
+  const path = window.location.pathname;
+  const isIndexPage =
+    /\/Aurora-Music\/?$/.test(path) ||
+    /\/Aurora-Music\/index\.php$/.test(path) ||
+    /\/Aurora-Music\/index\.html$/.test(path) ||
+    path === "/" ||
+    path === "/index.php" ||
+    path === "/index.html";
+
+  if (isIndexPage) {
+    history.replaceState(null, "", window.location.href);
     history.pushState(null, "", window.location.href);
-  });
+    window.addEventListener("popstate", () => {
+      history.pushState(null, "", window.location.href);
+    });
+  }
 
   setViewportHeight();
   fetchPromos();

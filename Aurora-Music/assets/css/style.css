@@ -128,7 +128,7 @@ section,
   min-width: 0;
 }
 
-/* ── Logo ── */
+/* Logo */
 .logo-area {
   display: flex;
   flex-direction: column;
@@ -175,7 +175,7 @@ section,
   }
 }
 
-/* ── Versículo ── */
+/* Versículo */
 .container-inline h2 {
   font-family: "Google Sans", sans-serif;
   font-size: 1.1rem;
@@ -309,7 +309,6 @@ section,
 }
 
 /* Player Desktop  */
-
 .player-section {
   display: flex;
   flex-direction: column;
@@ -386,7 +385,7 @@ section,
   opacity: 0.9;
 }
 
-/*  Barra de Progresso */
+/* Barra de Progresso */
 .progress-container {
   display: flex;
   align-items: center;
@@ -414,7 +413,7 @@ section,
   min-width: 2.2rem;
 }
 
-/*  Controles  */
+/* Controles  */
 .controls {
   display: flex;
   justify-content: center;
@@ -444,7 +443,7 @@ section,
   font-size: 2rem;
 }
 
-/*  Play Button  */
+/* Play Button  */
 .play-btn {
   width: 4.3rem;
   height: 4.3rem;
@@ -461,7 +460,7 @@ section,
   transform: scale(1.05);
 }
 
-/*  Volume  */
+/* Volume  */
 .volume-control {
   display: flex;
   align-items: center;
@@ -543,7 +542,7 @@ section,
   }
 }
 
-/*  Playlist  */
+/* Playlist  */
 .section-title-playlist {
   margin: 2.5rem 0 1.25rem;
   font-size: 1.4rem;
@@ -613,9 +612,11 @@ section,
       #0066cc 60%,
       #0661f3 85%,
       #1d4ed8 100%);
-      width:100%;
-      margin: 0 auto 1rem;
-      }
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0 auto 1rem;
+}
 
 .about-content {
   text-align: center;
@@ -641,7 +642,6 @@ section,
   height: 0.25rem;
   background: linear-gradient(90deg, #4d94ff, #0661f3);
   border-radius: 0.125rem;
-  
 }
 
 .about-grid {
@@ -649,6 +649,8 @@ section,
   grid-template-columns: repeat(3, 1fr);
   gap: 2.5rem;
   margin-top: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .about-card {
@@ -729,6 +731,9 @@ section,
   padding: 4rem 0;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(0, 0, 0, 0.35));
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .pricing-section .section-title {
@@ -751,15 +756,18 @@ section,
   transform: translateX(-50%);
   width: 6.25rem;
   height: 0.25rem;
- }
+}
 
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   max-width: 68.75rem;
+  width: 100%;
   margin: 0 auto;
   align-items: start;
+  padding: 0 1.25rem;
+  box-sizing: border-box;
 }
 
 .pricing-card {
@@ -928,6 +936,9 @@ section,
 .contact-section {
   padding: 2rem 0;
   background: linear-gradient(to bottom, #0a1628 0%, #1a2942 50%, #2a3c5a 100%);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .contact-section .section-title {
@@ -952,6 +963,8 @@ section,
   width: 100%;
   max-width: 62.5rem;
   margin: 0 auto;
+  padding: 0 1.25rem;
+  box-sizing: border-box;
 }
 
 .contact-info-cards {
@@ -1251,7 +1264,9 @@ section,
   font-size: 0.8rem;
 }
 
-/* Mobile ≤ 768px */
+/* =============================================
+   Mobile ≤ 768px
+============================================= */
 @media (max-width: 768px) {
   :root {
     --header-height: 3.5rem;
@@ -1283,10 +1298,9 @@ section,
     padding: 0 1rem !important;
   }
 
-  /*  Header */
+  /* Header */
   .header {
     height: var(--header-height);
-    padding: 0;
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -1333,7 +1347,7 @@ section,
     display: none;
   }
 
-  /*  Hamburger */
+  /* Hamburger */
   .menu-toggle {
     display: flex;
     align-items: center;
@@ -1345,23 +1359,21 @@ section,
     z-index: 1002;
   }
 
-  /*  Nav lateral */
+  /* Nav lateral */
   .nav {
     position: fixed;
     top: calc(var(--header-height) + 0.8rem);
     left: -100%;
     width: 70vw;
     max-width: 15rem;
-    height: auto;
     max-height: calc(100vh - var(--header-height));
     background: var(--deep-blue);
     flex-direction: column;
-    align-items: stretch;
     padding: 0.25rem 0;
     z-index: 9998;
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0.25rem 0 1.5rem rgba(0, 0, 0, 0.5);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0.25rem 0 1.5rem rgba(0,0,0,0.5);
     transition: left 0.3s ease;
     overflow-y: auto;
   }
@@ -1373,37 +1385,30 @@ section,
   .nav a {
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     width: 100%;
     text-align: left;
-    border-radius: 0;
-    white-space: normal;
-    font-style: normal;
-    line-height: 1.2;
   }
 
   .nav a::after {
     display: none;
   }
 
-  /*  Hero Mobile */
+  /* Hero */
   .hero {
-    min-height: calc(100dvh - var(--header-height) - 60px);
+    min-height: calc(100dvh - var(--header-height));
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 1rem;
     background: var(--deep-blue);
+    padding: 0 1.5rem;
+    overflow: hidden;
   }
-
 
   .hero .container {
     display: grid;
     place-items: center;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
   }
 
   .hero-content {
@@ -1412,33 +1417,193 @@ section,
     text-align: center;
     gap: 1.25rem;
     width: 100%;
-    max-width: 360px;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .hero-content h2 {
-    font-size: clamp(1.6rem, 5.5vw, 2.2rem);
+    font-size: clamp(1.5rem, 5.5vw, 2.2rem);
     line-height: 1.2;
-    margin: 0;
   }
 
   .hero-content p {
-    font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
     opacity: 0.9;
-    margin: 0;
-    max-width: 340px;
-    /* Mantém alinhado com o título */
   }
 
   .btn-primary {
     padding: 0.75rem 1.6rem;
     font-size: 0.95rem;
-    text-decoration: none;
-    margin: 0 auto;
-    /* Reforça centralização */
+    text-align: center;
   }
 
+  /* Player */
+  .player-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 0 calc(var(--bottomnav-height) + 1rem);
+  }
 
+  .player-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .album-art {
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    border: 0.25rem solid var(--primary-color);
+    overflow: hidden;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .play-btn {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+  }
+
+  /* Playlist */
+  .playlist {
+    width: 100%;
+  }
+
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  /* Sobre */
+  .about-grid {
+   grid-template-columns: 1fr;
+  }
+
+  /* Preços */
+  .pricing-grid {
+   grid-template-columns: 1fr;
+  }
+
+  /* Contato */
+  .contact-info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  /* Footer */
+  .footer-content {
+   grid-template-columns: 1fr;
+  }
+
+  .mobile-only {
+    display: list-item;
+  }
+
+  .whatsapp-float {
+    bottom: calc(var(--bottomnav-height) + 0.725rem);
+    right: 0.75rem;
+    width: 3rem;
+    height: 3rem;
+  }
+
+  /* Bottom Nav */
+  .mobile-nav-scroll {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    z-index: 1000;
+    background: var(--deep-blue);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    padding: 0;
+    backdrop-filter: blur(20px);
+  }
+
+  .mobile-nav-scroll .nav-scroll-container {
+    height: var(--bottomnav-height);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+
+  .mobile-nav-scroll a {
+    all: unset;
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.58rem;
+    font-family: "Ubuntu", sans-serif;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    height: 100%;
+  }
+
+  .mobile-nav-scroll a i {
+    font-size: 1.35rem;
+  }
+
+  .mobile-nav-scroll a.active {
+    color: var(--yellow);
+  }
 
 }
+
+/* =============================================
+   iPhone ≤ 375px
+============================================= */
+@media (max-width: 375px) {
+  .hero-content h2 {
+    font-size: 1.45rem;
+  }
+
+  .main-logo {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+}
+
+/* =============================================
+   iPhone 5
+============================================= */
+@media (device-height: 568px) and (device-width: 320px) {
+  :root {
+    --header-height: 3rem;
+  }
+
+  .hero-content h2 {
+    font-size: 1.35rem;
+  }
+}
+
+/* =============================================
+   Landscape
+============================================= */
+@media (max-width: 768px) and (orientation: landscape) {
+  .hero {
+    min-height: auto;
+    padding: 2rem 1rem;
+  }
+}
+
