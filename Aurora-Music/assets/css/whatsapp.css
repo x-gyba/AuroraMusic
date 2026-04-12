@@ -1,0 +1,191 @@
+/* ==========================================
+   BOTÃO FLUTUANTE WHATSAPP - AURORA MUSIC
+   Integrado com style.css
+   ========================================== */
+
+/* Botão Principal */
+.whatsapp-float {
+  position: fixed !important;
+  bottom: 30px;
+  right: 30px;
+  z-index: 99999 !important; /* Máximo possível - acima de TUDO */
+  text-decoration: none;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: pulse-whatsapp 2s infinite;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Hover Effect */
+.whatsapp-float:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 8px 30px rgba(37, 211, 102, 0.6);
+  animation: none;
+}
+
+/* Container do Ícone */
+.whatsapp-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ícone do WhatsApp */
+.whatsapp-icon i {
+  font-size: 2.25rem;
+  color: #ffffff;
+  text-shadow: none;
+  animation: wiggle-whatsapp 1s ease-in-out infinite;
+}
+
+/* ==========================================
+   ANIMAÇÕES
+   ========================================== */
+
+/* Pulse Animation - Efeito de pulso contínuo */
+@keyframes pulse-whatsapp {
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 30px rgba(37, 211, 102, 0.7);
+  }
+}
+
+/* Wiggle Animation - Efeito de balanço no ícone */
+@keyframes wiggle-whatsapp {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+/* ==========================================
+   RESPONSIVIDADE - INTEGRADO COM AURORA MUSIC
+   ========================================== */
+
+/* Tablet - 768px (mesma breakpoint do style.css) */
+@media (max-width: 768px) {
+  .whatsapp-float {
+    width: 55px !important;
+    height: 55px !important;
+    bottom: 85px !important; /* ACIMA da navbar mobile que tem ~70px */
+    right: 20px !important;
+    z-index: 99999 !important;
+  }
+
+  .whatsapp-icon i {
+    font-size: 2rem !important;
+  }
+}
+
+/* iPhone portrait and small screens - 640px (mesma breakpoint do style.css) */
+@media only screen and (max-width: 640px) and (orientation: portrait) {
+  .whatsapp-float {
+    width: 52px !important;
+    height: 52px !important;
+    bottom: 85px !important;
+    right: 18px !important;
+    z-index: 99999 !important;
+  }
+
+  .whatsapp-icon i {
+    font-size: 1.9rem !important;
+  }
+}
+
+/* Telas Pequenas - 320px to 479px portrait (mesma breakpoint do style.css) */
+@media only screen and (min-device-width: 320px) and (max-device-width: 479px) and (orientation: portrait) {
+  .whatsapp-float {
+    width: 50px !important;
+    height: 50px !important;
+    bottom: 85px !important;
+    right: 15px !important;
+    z-index: 99999 !important;
+  }
+
+  .whatsapp-icon i {
+    font-size: 1.8rem !important;
+  }
+}
+
+/* iPhone landscape and iPad portrait (mesma breakpoint do style.css) */
+@media only screen and (max-device-width: 480px) and (orientation: landscape),
+  only screen and (max-device-width: 640px) and (orientation: portrait) {
+  .whatsapp-float {
+    bottom: 85px !important;
+    right: 18px !important;
+    z-index: 99999 !important;
+  }
+}
+
+/* Extra pequenas - 375px (iPhone 11, iPhone X, etc) */
+@media only screen and (max-width: 375px) {
+  .whatsapp-float {
+    width: 48px !important;
+    height: 48px !important;
+    bottom: 85px !important;
+    right: 15px !important;
+    z-index: 99999 !important;
+  }
+
+  .whatsapp-icon i {
+    font-size: 1.7rem !important;
+  }
+}
+
+/* Extra extra pequenas - 320px (iPhone SE, etc) */
+@media only screen and (max-width: 320px) {
+  .whatsapp-float {
+    width: 46px !important;
+    height: 46px !important;
+    bottom: 85px !important;
+    right: 12px !important;
+    z-index: 99999 !important;
+  }
+
+  .whatsapp-icon i {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* ==========================================
+   GARANTIAS DE VISIBILIDADE
+   ========================================== */
+
+/* Forçar exibição em todos os contextos */
+body .whatsapp-float,
+html .whatsapp-float,
+* .whatsapp-float {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Prevenir sobreposição de estilos inline */
+.whatsapp-float[style*="display: none"],
+.whatsapp-float[style*="visibility: hidden"],
+.whatsapp-float[style*="opacity: 0"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
