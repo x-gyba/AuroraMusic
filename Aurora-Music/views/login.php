@@ -1,5 +1,14 @@
 <?php
 // views/login.php
+// Garanta que a sessão esteja iniciada no topo do arquivo que carrega esta view
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Gera o token se ele não existir
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 ?>
 <div class="login-modal-overlay" id="loginOverlay"></div>
 
@@ -16,6 +25,8 @@
         </div>
 
         <form id="loginForm" class="login-form-modal" method="post" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            
             <div class="form-group">
                 <label for="username">
                     <i class="bx bx-user"></i>

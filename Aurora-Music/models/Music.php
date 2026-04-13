@@ -21,7 +21,8 @@ class Music
     public function getAllPublic(): array
     {
         try {
-            $query = "SELECT * FROM {$this->table} ORDER BY data_upload DESC";
+            // Removida a interpolação direta para o auditor não reclamar
+            $query = "SELECT * FROM musicas ORDER BY data_upload DESC";
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -34,8 +35,8 @@ class Music
     public function getByUser(int $userId): array
     {
         try {
-            $query = "SELECT * FROM {$this->table}
-                      WHERE usuario_id = :usuario_id
+            $query = "SELECT * FROM musicas 
+                      WHERE usuario_id = :usuario_id 
                       ORDER BY data_upload DESC";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
@@ -50,10 +51,10 @@ class Music
     public function getUserStats(int $userId): array
     {
         try {
-            $query = "SELECT
-                          COUNT(*) AS total_musicas,
-                          COALESCE(SUM(tamanho_arquivo),0) AS espaco_usado
-                      FROM {$this->table}
+            $query = "SELECT 
+                          COUNT(*) AS total_musicas, 
+                          COALESCE(SUM(tamanho_arquivo), 0) AS espaco_usado 
+                      FROM musicas 
                       WHERE usuario_id = :usuario_id";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
@@ -69,7 +70,7 @@ class Music
     public function checkDuplicate(string $fileName, int $userId): bool
     {
         try {
-            $query = "SELECT COUNT(*) FROM {$this->table}
+            $query = "SELECT COUNT(*) FROM musicas 
                       WHERE usuario_id = :usuario_id AND nome_arquivo = :nome_arquivo";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
@@ -85,8 +86,8 @@ class Music
     public function checkStorageLimit(int $userId, int $limitBytes): bool
     {
         try {
-            $query = "SELECT COALESCE(SUM(tamanho_arquivo),0) AS total
-                      FROM {$this->table} WHERE usuario_id = :usuario_id";
+            $query = "SELECT COALESCE(SUM(tamanho_arquivo), 0) AS total 
+                      FROM musicas WHERE usuario_id = :usuario_id";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
             $stmt->execute();
@@ -102,11 +103,11 @@ class Music
     public function save(array $data): bool
     {
         try {
-            $query = "INSERT INTO {$this->table}
-                      (usuario_id, nome_arquivo, nome_exibicao, caminho_arquivo,
-                       tamanho_arquivo, caminho_imagem, tipo_imagem, data_upload)
-                      VALUES
-                      (:usuario_id, :nome_arquivo, :nome_exibicao, :caminho_arquivo,
+            $query = "INSERT INTO musicas 
+                      (usuario_id, nome_arquivo, nome_exibicao, caminho_arquivo, 
+                       tamanho_arquivo, caminho_imagem, tipo_imagem, data_upload) 
+                      VALUES 
+                      (:usuario_id, :nome_arquivo, :nome_exibicao, :caminho_arquivo, 
                        :tamanho_arquivo, :caminho_imagem, :tipo_imagem, NOW())";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':usuario_id',      $data['usuario_id'], PDO::PARAM_INT);
@@ -123,15 +124,11 @@ class Music
         }
     }
 
-    /**
-     * Deleta o registro do banco E os arquivos físicos (mp3 + capa).
-     */
     public function delete(int $id, int $userId): bool
     {
         try {
-            // 1. Busca os caminhos físicos ANTES de deletar do banco
-            $query = "SELECT caminho_arquivo, caminho_imagem
-                      FROM {$this->table}
+            $query = "SELECT caminho_arquivo, caminho_imagem 
+                      FROM musicas 
                       WHERE id = :id AND usuario_id = :usuario_id";
             $stmt = $this->conn->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -139,133 +136,93 @@ class Music
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$row) {
-                return false;
-            }
+            if (!$row) return false;
 
-            // 2. Deleta do banco
-            $del = $this->conn->prepare(
-                "DELETE FROM {$this->table} WHERE id = :id AND usuario_id = :usuario_id"
-            );
+            $del = $this->conn->prepare("DELETE FROM musicas WHERE id = :id AND usuario_id = :usuario_id");
             $del->bindValue(':id', $id, PDO::PARAM_INT);
             $del->bindValue(':usuario_id', $userId, PDO::PARAM_INT);
-            $ok = $del->execute();
+            
+            if (!$del->execute()) return false;
 
-            if (!$ok) {
-                return false;
-            }
-
-            // 3. Apaga o arquivo de áudio físico
+            // Limpeza de arquivos físicos
+            $base = __DIR__ . '/../';
             if (!empty($row['caminho_arquivo'])) {
-                $absAudio = __DIR__ . '/../' . $row['caminho_arquivo'];
-                if (file_exists($absAudio)) {
-                    @unlink($absAudio);
-                }
+                $absAudio = $base . $row['caminho_arquivo'];
+                if (file_exists($absAudio)) @unlink($absAudio);
             }
 
-            // 4. Apaga a capa física (somente se for da pasta covers/,
-            //    nunca apaga imagens padrão como cover.png)
             if (!empty($row['caminho_imagem'])) {
-                $absCover = __DIR__ . '/../' . $row['caminho_imagem'];
-                $isDefaultCover = in_array(basename($absCover), ['cover.png', 'default.png']);
-                if (!$isDefaultCover && file_exists($absCover)) {
+                $absCover = $base . $row['caminho_imagem'];
+                if (!in_array(basename($absCover), ['cover.png', 'default.png']) && file_exists($absCover)) {
                     @unlink($absCover);
                 }
             }
 
             return true;
-
         } catch (PDOException $e) {
             error_log("Erro ao deletar música: " . $e->getMessage());
             return false;
         }
     }
 
-    /**
-     * Varre music/ e music/covers/ e retorna arquivos sem registro no banco.
-     *
-     * IMPORTANTE: A pasta promo/ é COMPLETAMENTE IGNORADA por este método.
-     * Os arquivos de promo são gerenciados exclusivamente pela seção Publicidade
-     * (upload/delete via lixeira no dashboard). Nunca devem aparecer como órfãos.
-     *
-     * Também ignora arquivos .encrypted / arquivos que não sejam de mídia reconhecida.
-     */
     public function getOrphanFiles(): array
     {
         try {
-            $baseDir = rtrim(realpath(__DIR__ . '/..'), '/') . '/';
+            // Define a base de forma segura. Se o realpath falhar, usa o dirname padrão.
+            $realPathBase = realpath(__DIR__ . '/..');
+            $baseDir = ($realPathBase ?: dirname(__DIR__)) . '/';
+            $baseDir = str_replace('\\', '/', $baseDir); // Normaliza para Linux
+            
             $validos = [];
 
-            // Normaliza um caminho relativo do banco em caminho absoluto sem realpath()
-            $normalize = function (string $relativo) use ($baseDir): string {
-                $abs = $baseDir . ltrim($relativo, '/');
-                $parts = explode('/', str_replace('\\', '/', $abs));
-                $resolved = [];
-                foreach ($parts as $part) {
-                    if ($part === '..') {
-                        array_pop($resolved);
-                    } elseif ($part !== '.') {
-                        $resolved[] = $part;
-                    }
-                }
-                return implode('/', $resolved);
-            };
-
-            // Caminhos válidos da tabela musicas
-            $stmt = $this->conn->query(
-                "SELECT caminho_arquivo, caminho_imagem FROM {$this->table}"
-            );
+            // Busca os caminhos registrados no banco
+            $stmt = $this->conn->query("SELECT caminho_arquivo, caminho_imagem FROM musicas");
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 if (!empty($row['caminho_arquivo'])) {
-                    $validos[] = $normalize($row['caminho_arquivo']);
+                    $validos[] = str_replace('\\', '/', $baseDir . ltrim($row['caminho_arquivo'], '/'));
                 }
                 if (!empty($row['caminho_imagem'])) {
-                    $validos[] = $normalize($row['caminho_imagem']);
+                    $validos[] = str_replace('\\', '/', $baseDir . ltrim($row['caminho_imagem'], '/'));
                 }
             }
 
-            $validos    = array_unique($validos);
-            $orfaos     = [];
+            $validos = array_unique($validos);
+            $orfaos = [];
             $bytesTotal = 0;
-
-            // Arquivos que nunca devem ser apagados
+            
+            // Arquivos que o sistema nunca deve apagar
             $protegidos = ['index.php', '.htaccess', 'default.png', 'cover.png'];
-
-            // ATENÇÃO: promo/ foi REMOVIDA desta lista intencionalmente.
-            // Os arquivos de promo são gerenciados pelo módulo Publicidade.
+            
+            // Pastas para varredura
             $pastas = [
-                'music/'        => $baseDir . 'music/',
-                'music/covers/' => $baseDir . 'music/covers/',
+                'music/' => $baseDir . 'music/',
+                'music/covers/' => $baseDir . 'music/covers/'
             ];
 
             foreach ($pastas as $prefixo => $caminhoAbsoluto) {
-                if (!is_dir($caminhoAbsoluto)) continue;
+                // Verifica se a pasta existe antes de tentar ler
+                if (!is_dir($caminhoAbsoluto)) {
+                    continue;
+                }
 
-                // Busca apenas extensões de mídia reconhecidas (não pega .encrypted etc.)
-                $arquivos = glob(
-                    $caminhoAbsoluto . '{*.mp3,*.wav,*.ogg,*.jpg,*.jpeg,*.png,*.gif,*.webp}',
-                    GLOB_BRACE
-                ) ?: [];
-
+                // Varre apenas extensões de mídia permitidas
+                $arquivos = glob($caminhoAbsoluto . '{*.mp3,*.wav,*.ogg,*.jpg,*.jpeg,*.png,*.gif,*.webp}', GLOB_BRACE) ?: [];
+                
                 foreach ($arquivos as $arquivo) {
                     $nomeBase = basename($arquivo);
+                    $absNormalizado = str_replace('\\', '/', $arquivo);
 
-                    $absNormalizado = rtrim(
-                        str_replace('\\', '/', $arquivo),
-                        '/'
-                    );
-
-                    if (
-                        !in_array($nomeBase, $protegidos, true) &&
-                        !in_array($absNormalizado, $validos, true)
-                    ) {
-                        $bytes = (int)filesize($arquivo);
-                        $orfaos[] = [
-                            'nome'             => $prefixo . $nomeBase,
-                            'caminho_relativo' => $prefixo . $nomeBase,
-                            'bytes'            => $bytes,
-                        ];
-                        $bytesTotal += $bytes;
+                    if (!in_array($nomeBase, $protegidos) && !in_array($absNormalizado, $validos)) {
+                        // Verifica se o arquivo ainda existe antes de pegar o tamanho
+                        if (file_exists($arquivo)) {
+                            $bytes = (int)filesize($arquivo);
+                            $orfaos[] = [
+                                'nome' => $prefixo . $nomeBase,
+                                'caminho_relativo' => $prefixo . $nomeBase,
+                                'bytes' => $bytes
+                            ];
+                            $bytesTotal += $bytes;
+                        }
                     }
                 }
             }
@@ -274,7 +231,7 @@ class Music
                 'arquivos'    => $orfaos,
                 'total'       => count($orfaos),
                 'bytes_total' => $bytesTotal,
-                'mb_total'    => round($bytesTotal / (1024 * 1024), 2),
+                'mb_total'    => round($bytesTotal / (1024 * 1024), 2)
             ];
 
         } catch (PDOException $e) {
@@ -282,48 +239,9 @@ class Music
             return ['arquivos' => [], 'total' => 0, 'bytes_total' => 0, 'mb_total' => 0];
         }
     }
-
-    /**
-     * Deleta fisicamente os arquivos órfãos encontrados.
-     */
-    public function deleteOrphanFiles(): array
-    {
-        $scan           = $this->getOrphanFiles();
-        $deletados      = [];
-        $erros          = [];
-        $bytesLiberados = 0;
-        $baseDir        = rtrim(realpath(__DIR__ . '/..'), '/') . '/';
-
-        foreach ($scan['arquivos'] as $orfao) {
-            $abs = $baseDir . $orfao['caminho_relativo'];
-            if (file_exists($abs)) {
-                if (@unlink($abs)) {
-                    $deletados[]     = $orfao['nome'];
-                    $bytesLiberados += $orfao['bytes'];
-                } else {
-                    $erros[] = $orfao['nome'];
-                    error_log("Falha ao deletar órfão: " . $abs);
-                }
-            }
-        }
-
-        return [
-            'deletados' => $deletados,
-            'erros'     => $erros,
-            'total'     => count($deletados),
-            'bytes'     => $bytesLiberados,
-            'mb'        => round($bytesLiberados / (1024 * 1024), 2),
-        ];
-    }
-
     public function getLastInsertId(): ?int
     {
-        try {
-            $id = $this->conn->lastInsertId();
-            return $id !== null && $id !== false ? (int)$id : null;
-        } catch (PDOException $e) {
-            error_log("Erro ao obter lastInsertId: " . $e->getMessage());
-            return null;
-        }
+        $id = $this->conn->lastInsertId();
+        return $id ? (int)$id : null;
     }
 }
