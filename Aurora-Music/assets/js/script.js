@@ -1,27 +1,27 @@
 /* ═══════════════════════════════════════════════════════════════
-   Aurora Music — script.js (Versão Final Otimizada)
+   Aurora Music — script.js (Versão Final Otimizada v2)
    Foco: Performance, Sem Duplicações e UX Fluida
  ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener("DOMContentLoaded", () => {
   /* ── Seleção de Elementos ────────────────────────────────── */
-  const audio        = document.getElementById("audioPlayer");
-  const playBtn      = document.getElementById("playBtn");
-  const prevBtn      = document.getElementById("prevBtn");
-  const nextBtn      = document.getElementById("nextBtn");
-  const shuffleBtn   = document.getElementById("shuffleBtn");
-  const repeatBtn    = document.getElementById("repeatBtn");
-  const progress     = document.getElementById("progress");
-  const progressBar  = document.querySelector(".progress-bar");
+  const audio         = document.getElementById("audioPlayer");
+  const playBtn       = document.getElementById("playBtn");
+  const prevBtn       = document.getElementById("prevBtn");
+  const nextBtn       = document.getElementById("nextBtn");
+  const shuffleBtn    = document.getElementById("shuffleBtn");
+  const repeatBtn     = document.getElementById("repeatBtn");
+  const progress      = document.getElementById("progress");
+  const progressBar   = document.querySelector(".progress-bar");
   const currentTimeEl = document.getElementById("currentTime");
-  const durationEl   = document.getElementById("duration");
-  const volumeSlider = document.getElementById("volumeSlider");
-  const volumeIcon   = document.querySelector(".volume-control i");
-  const trackName    = document.getElementById("trackName");
-  const artistName   = document.getElementById("artistName");
-  const albumCover   = document.getElementById("albumCover");
-  const searchInput  = document.getElementById("searchInput");
-  const playlistEl   = document.getElementById("playlistContainer");
+  const durationEl    = document.getElementById("duration");
+  const volumeSlider  = document.getElementById("volumeSlider");
+  const volumeIcon    = document.querySelector(".volume-control i");
+  const trackName     = document.getElementById("trackName");
+  const artistName    = document.getElementById("artistName");
+  const albumCover    = document.getElementById("albumCover");
+  const searchInput   = document.getElementById("searchInput");
+  const playlistEl    = document.getElementById("playlistContainer");
 
   /* ── Constantes e Estados ────────────────────────────────── */
   const ACTIVE_GREEN = "#00ff00";
@@ -34,15 +34,15 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   };
 
-  let allItems           = Array.from(document.querySelectorAll(".playlist-item"));
-  let playlist           = [...allItems];
-  let currentIdx         = 0;
-  let isPlaying          = false;
-  let isShuffle          = false;
-  let isRepeat           = false;
-  let isPlayingAd        = false;
+  let allItems            = Array.from(document.querySelectorAll(".playlist-item"));
+  let playlist            = [...allItems];
+  let currentIdx          = 0;
+  let isPlaying           = false;
+  let isShuffle           = false;
+  let isRepeat            = false;
+  let isPlayingAd         = false;
   let tracksPlayedSinceAd = 0;
-  let promoFiles         = [];
+  let promoFiles          = [];
 
   /* ── Menu Mobile & Navegação ─────────────────────────────── */
   const menuToggleBtn = document.querySelector(".menu-toggle");
@@ -71,49 +71,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", setViewportHeight);
 
-  /* ── Bloqueio do Botão Voltar ────────────────────────────────
+  /* ── Bloqueio do Botão Voltar (v2 — cobre mobile) ───────────
    *
-   * Estratégia em 3 camadas para máxima confiabilidade:
+   * Camada 1: pushState duplo — cria um "buffer" no histórico,
+   *   de modo que o 1º toque em Voltar apenas desfaça o push,
+   *   mantendo o usuário na mesma URL.
    *
-   * 1. history.pushState duplo — empurra dois estados para que o
-   *    primeiro "Voltar" apenas desfaça o pushState, não saia da página.
+   * Camada 2: popstate loop — toda vez que o browser tentar
+   *   navegar para trás (clique ou toque no botão Voltar),
+   *   reempurra um novo estado. Eficaz em desktop e em parte
+   *   dos browsers Android.
    *
-   * 2. popstate — re-empurra um novo estado toda vez que o browser
-   *    tentar navegar para trás, mantendo o usuário na página.
+   * Camada 3: pageshow + persisted — captura a restauração do
+   *   bfcache (back-forward cache), que é o mecanismo que torna
+   *   o Voltar instantâneo no iOS Safari e Android Chrome.
+   *   Quando e.persisted === true, a página foi ressuscitada do
+   *   cache — reempurramos o estado e o usuário fica na página.
    *
-   * 3. beforeunload — exibe diálogo nativo de confirmação de saída
-   *    caso o browser consiga escapar das camadas 1 e 2 (ex: swipe
-   *    agressivo no iOS ou botão físico no Android).
+   * POR QUE beforeunload foi REMOVIDO:
+   *   Desde 2019, iOS Safari e Android Chrome ignoram
+   *   beforeunload por spec (impedem que o evento bloqueie
+   *   gestos de swipe). Mantê-lo não ajuda e pode causar
+   *   comportamento inconsistente entre plataformas.
    *
-   * IMPORTANTE: beforeunload só dispara em navegação real (sair da
-   * página), nunca em cliques internos ou scroll, portanto não
-   * atrapalha a UX normal do site.
+   * REQUISITO DE SERVIDOR (já presente no .htaccess):
+   *   Cache-Control: no-store no index.php desativa o bfcache
+   *   no nível do protocolo HTTP, reforçando as camadas acima.
    * ── */
   const path = window.location.pathname;
   const isIndexPage =
     /\/Aurora-Music\/?$/.test(path)           ||
     /\/Aurora-Music\/index\.php$/.test(path)  ||
     /\/Aurora-Music\/index\.html$/.test(path) ||
-    path === "/"                               ||
-    path === "/index.php"                      ||
+    path === "/"                              ||
+    path === "/index.php"                     ||
     path === "/index.html";
 
   if (isIndexPage) {
-    // Camada 1: dois estados no histórico
-    history.replaceState({ page: "index", ts: Date.now() }, "", window.location.href);
-    history.pushState(  { page: "index", ts: Date.now() }, "", window.location.href);
+    // Desativa restauração de scroll automática do browser
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
 
-    // Camada 2: re-empurra sempre que popstate disparar
-    window.addEventListener("popstate", (e) => {
-      history.pushState({ page: "index", ts: Date.now() }, "", window.location.href);
+    // Camada 1: dois estados no histórico
+    history.replaceState({ page: "aurora-index" }, "", window.location.href);
+    history.pushState(  { page: "aurora-index" }, "", window.location.href);
+
+    // Marca a sessão como "iniciada no index"
+    sessionStorage.setItem("aurora_on_index", "1");
+
+    // Camada 2: re-push no popstate (desktop + Android parcial)
+    window.addEventListener("popstate", () => {
+      history.pushState({ page: "aurora-index" }, "", window.location.href);
     });
 
-    // Camada 3: diálogo nativo de confirmação (fallback para iOS/Android)
-    window.addEventListener("beforeunload", (e) => {
-      e.preventDefault();
-      // A string é ignorada pelos browsers modernos, mas o evento
-      // ainda dispara o diálogo nativo de "Sair da página?"
-      e.returnValue = "";
+    // Camada 3: pageshow cobre bfcache (iOS Safari, Android Chrome)
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) {
+        history.pushState({ page: "aurora-index" }, "", window.location.href);
+      }
     });
   }
 
@@ -171,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
     trackName.textContent = cleanName;
 
-    const artist       = item.dataset.artist;
+    const artist        = item.dataset.artist;
     const isValidArtist =
       artist && artist.trim() !== "" && artist !== "Artista Desconhecido";
     artistName.textContent = isValidArtist ? artist.trim() : "";
@@ -220,9 +236,9 @@ document.addEventListener("DOMContentLoaded", () => {
     isPlayingAd = true;
     const randomPromo = promoFiles[Math.floor(Math.random() * promoFiles.length)];
 
-    trackName.textContent = "📢 Publicidade";
+    trackName.textContent  = "📢 Publicidade";
     artistName.textContent = "Aurora Music";
-    albumCover.src = "assets/images/promo-cover.png";
+    albumCover.src         = "assets/images/promo-cover.png";
     albumCover.style.animationPlayState = "paused";
 
     playBtn.style.opacity      = "0.5";
@@ -234,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const onAdEnd = () => {
       audio.removeEventListener("ended", onAdEnd);
       isPlayingAd = false;
-      playBtn.style.opacity      = "1";
+      playBtn.style.opacity       = "1";
       playBtn.style.pointerEvents = "auto";
       loadTrack(resumeIdx, true);
     };
@@ -290,9 +306,9 @@ document.addEventListener("DOMContentLoaded", () => {
   volumeSlider.addEventListener("input", () => {
     audio.volume = volumeSlider.value / 100;
     volumeIcon.className =
-      audio.volume === 0   ? "bx bx-volume-mute" :
-      audio.volume < 0.5   ? "bx bx-volume"      :
-                             "bx bx-volume-full";
+      audio.volume === 0 ? "bx bx-volume-mute" :
+      audio.volume < 0.5 ? "bx bx-volume"      :
+                           "bx bx-volume-full";
   });
 
   audio.addEventListener("ended", () => {
