@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   Aurora Music — script.js (Versão Final Otimizada v2)
-   Foco: Performance, Sem Duplicações e UX Fluida
+   Aurora Music — script.js (Versão Final Otimizada v3)
+   Correções: bloqueio Voltar iOS/Android, artista, responsividade
  ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -71,32 +71,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", setViewportHeight);
 
-  /* ── Bloqueio do Botão Voltar (v2 — cobre mobile) ───────────
+  /* ── Bloqueio do Botão Voltar ────────────────────────────────
    *
-   * Camada 1: pushState duplo — cria um "buffer" no histórico,
-   *   de modo que o 1º toque em Voltar apenas desfaça o push,
-   *   mantendo o usuário na mesma URL.
+   * Estratégia multi-camada para iOS Safari e Android Chrome:
    *
-   * Camada 2: popstate loop — toda vez que o browser tentar
-   *   navegar para trás (clique ou toque no botão Voltar),
-   *   reempurra um novo estado. Eficaz em desktop e em parte
-   *   dos browsers Android.
+   * Camada 1: replaceState + pushState duplo
+   *   Cria um estado "buffer" no histórico. O 1º toque em Voltar
+   *   desfaz apenas o pushState, mantendo a URL/página atual.
    *
-   * Camada 3: pageshow + persisted — captura a restauração do
-   *   bfcache (back-forward cache), que é o mecanismo que torna
-   *   o Voltar instantâneo no iOS Safari e Android Chrome.
-   *   Quando e.persisted === true, a página foi ressuscitada do
-   *   cache — reempurramos o estado e o usuário fica na página.
+   * Camada 2: popstate loop
+   *   Toda vez que o browser tenta navegar para trás, re-empurra
+   *   um novo estado. Funciona em desktop e Android Chrome.
    *
-   * POR QUE beforeunload foi REMOVIDO:
-   *   Desde 2019, iOS Safari e Android Chrome ignoram
-   *   beforeunload por spec (impedem que o evento bloqueie
-   *   gestos de swipe). Mantê-lo não ajuda e pode causar
-   *   comportamento inconsistente entre plataformas.
+   * Camada 3: pageshow + persisted (bfcache)
+   *   O bfcache é o mecanismo de iOS Safari / Android Chrome que
+   *   restaura a página instantaneamente ao pressionar Voltar.
+   *   Quando persisted === true, detectamos essa restauração e
+   *   re-empurramos o estado para "prender" o usuário.
    *
-   * REQUISITO DE SERVIDOR (já presente no .htaccess):
-   *   Cache-Control: no-store no index.php desativa o bfcache
-   *   no nível do protocolo HTTP, reforçando as camadas acima.
+   * Camada 4: visibilitychange (iOS Safari extra)
+   *   iOS Safari às vezes usa visibilitychange ao invés de
+   *   pageshow para bfcache. Detectamos o retorno à página
+   *   (document.visibilityState === 'visible') e re-empurramos.
+   *
+   * NOTA: beforeunload foi removido — iOS Safari e Android Chrome
+   *   ignoram esse evento por spec desde 2019.
+   *
+   * NOTA SERVIDOR: Cache-Control: no-store no PHP desativa o
+   *   bfcache via HTTP, reforçando as camadas acima.
    * ── */
   const path = window.location.pathname;
   const isIndexPage =
@@ -114,21 +116,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Camada 1: dois estados no histórico
-    history.replaceState({ page: "aurora-index" }, "", window.location.href);
-    history.pushState(  { page: "aurora-index" }, "", window.location.href);
+    history.replaceState({ page: "aurora-index", ts: Date.now() }, "", window.location.href);
+    history.pushState(  { page: "aurora-index", ts: Date.now() }, "", window.location.href);
 
-    // Marca a sessão como "iniciada no index"
     sessionStorage.setItem("aurora_on_index", "1");
 
-    // Camada 2: re-push no popstate (desktop + Android parcial)
-    window.addEventListener("popstate", () => {
-      history.pushState({ page: "aurora-index" }, "", window.location.href);
+    // Camada 2: re-push no popstate
+    window.addEventListener("popstate", (e) => {
+      history.pushState({ page: "aurora-index", ts: Date.now() }, "", window.location.href);
     });
 
     // Camada 3: pageshow cobre bfcache (iOS Safari, Android Chrome)
     window.addEventListener("pageshow", (e) => {
       if (e.persisted) {
-        history.pushState({ page: "aurora-index" }, "", window.location.href);
+        // Página veio do bfcache — re-empurra o estado
+        history.pushState({ page: "aurora-index", ts: Date.now() }, "", window.location.href);
+      }
+    });
+
+    // Camada 4: visibilitychange — extra para iOS Safari
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        // Verifica se o estado atual ainda é o nosso
+        if (!history.state || history.state.page !== "aurora-index") {
+          history.pushState({ page: "aurora-index", ts: Date.now() }, "", window.location.href);
+        }
       }
     });
   }
@@ -187,10 +199,15 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
     trackName.textContent = cleanName;
 
-    const artist        = item.dataset.artist;
-    const isValidArtist =
-      artist && artist.trim() !== "" && artist !== "Artista Desconhecido";
-    artistName.textContent = isValidArtist ? artist.trim() : "";
+    // Artista: usa data-artist do elemento (já resolvido no PHP)
+    const artist = (item.dataset.artist || "").trim();
+    if (artist !== "" && artist.toLowerCase() !== "artista desconhecido") {
+      artistName.textContent = artist;
+      artistName.style.display = "";
+    } else {
+      artistName.textContent = "";
+      artistName.style.display = "none";
+    }
 
     albumCover.src = item.dataset.cover || "assets/images/cover.png";
     audio.src      = item.dataset.src;
@@ -231,37 +248,37 @@ document.addEventListener("DOMContentLoaded", () => {
       loadTrack(nextIdx, true);
     }
   }
-function playPromo(resumeIdx) {
-  if (promoFiles.length === 0) {
-    loadTrack(resumeIdx, true);
-    return;
-  }
 
-  isPlayingAd = true;
-  // Sorteia um arquivo da lista de promos carregada do servidor
-  const randomPromo = promoFiles[Math.floor(Math.random() * promoFiles.length)];
+  function playPromo(resumeIdx) {
+    if (promoFiles.length === 0) {
+      loadTrack(resumeIdx, true);
+      return;
+    }
 
-  trackName.textContent  = "📢 Publicidade";
-  artistName.textContent = "Aurora Music";
-  albumCover.src         = "assets/images/promo-cover.png"; 
+    isPlayingAd = true;
+    const randomPromo = promoFiles[Math.floor(Math.random() * promoFiles.length)];
 
-  playBtn.style.opacity      = "0.5";
-  playBtn.style.pointerEvents = "none";
+    trackName.textContent  = "📢 Publicidade";
+    artistName.textContent = "Aurora Music";
+    artistName.style.display = "";
+    albumCover.src         = "assets/images/promo-cover.png";
 
-  // IMPORTANTE: Adiciona um cache buster para garantir que o browser não ignore o arquivo
-  audio.src = randomPromo + "?t=" + new Date().getTime();
-  audio.play();
+    playBtn.style.opacity      = "0.5";
+    playBtn.style.pointerEvents = "none";
 
-  const onAdEnd = () => {
+    audio.src = randomPromo + "?t=" + new Date().getTime();
+    audio.play();
+
+    const onAdEnd = () => {
+      audio.removeEventListener("ended", onAdEnd);
+      isPlayingAd = false;
+      playBtn.style.opacity       = "1";
+      playBtn.style.pointerEvents = "auto";
+      loadTrack(resumeIdx, true);
+    };
     audio.removeEventListener("ended", onAdEnd);
-    isPlayingAd = false;
-    playBtn.style.opacity       = "1";
-    playBtn.style.pointerEvents = "auto";
-    loadTrack(resumeIdx, true);
-  };
-  audio.removeEventListener("ended", onAdEnd); // Garante que não haja múltiplos listeners
-  audio.addEventListener("ended", onAdEnd);
-}
+    audio.addEventListener("ended", onAdEnd);
+  }
 
   /* ── Handlers de Interface ───────────────────────────────── */
   playBtn.addEventListener("click", () => {

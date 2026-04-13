@@ -125,8 +125,6 @@ class Music
 
     /**
      * Deleta o registro do banco E os arquivos físicos (mp3 + capa).
-     * CORREÇÃO: a versão anterior só apagava o registro SQL,
-     * deixando os arquivos físicos como órfãos no disco.
      */
     public function delete(int $id, int $userId): bool
     {
@@ -142,7 +140,6 @@ class Music
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$row) {
-                // Música não existe ou não pertence ao usuário
                 return false;
             }
 
@@ -185,12 +182,13 @@ class Music
     }
 
     /**
-     * Varre music/, music/covers/ e promo/ e retorna arquivos sem registro no banco.
+     * Varre music/ e music/covers/ e retorna arquivos sem registro no banco.
      *
-     * CORREÇÃO: a versão anterior usava realpath() para comparar caminhos.
-     * realpath() retorna false para arquivos sem permissão de leitura (mp3 criptografados),
-     * fazendo-os nunca entrarem em $validos e sempre aparecerem como órfãos.
-     * Agora a comparação usa caminhos normalizados diretamente, sem realpath().
+     * IMPORTANTE: A pasta promo/ é COMPLETAMENTE IGNORADA por este método.
+     * Os arquivos de promo são gerenciados exclusivamente pela seção Publicidade
+     * (upload/delete via lixeira no dashboard). Nunca devem aparecer como órfãos.
+     *
+     * Também ignora arquivos .encrypted / arquivos que não sejam de mídia reconhecida.
      */
     public function getOrphanFiles(): array
     {
@@ -200,9 +198,7 @@ class Music
 
             // Normaliza um caminho relativo do banco em caminho absoluto sem realpath()
             $normalize = function (string $relativo) use ($baseDir): string {
-                // Remove barras iniciais duplicadas e resolve ".."
                 $abs = $baseDir . ltrim($relativo, '/');
-                // Resolve apenas ".." sem exigir que o arquivo exista
                 $parts = explode('/', str_replace('\\', '/', $abs));
                 $resolved = [];
                 foreach ($parts as $part) {
@@ -228,43 +224,32 @@ class Music
                 }
             }
 
-            // Caminhos válidos da tabela promos (se existir)
-            try {
-                $stmtPromo = $this->conn->query("SELECT caminho_arquivo FROM promos");
-                while ($row = $stmtPromo->fetch(PDO::FETCH_ASSOC)) {
-                    if (!empty($row['caminho_arquivo'])) {
-                        $validos[] = $normalize($row['caminho_arquivo']);
-                    }
-                }
-            } catch (PDOException $e) {
-                // Tabela promos pode não existir ainda — ignora silenciosamente
-            }
-
             $validos    = array_unique($validos);
             $orfaos     = [];
             $bytesTotal = 0;
 
             // Arquivos que nunca devem ser apagados
-            $protegidos = ['promo.mp3', 'index.php', '.htaccess', 'default.png', 'cover.png'];
+            $protegidos = ['index.php', '.htaccess', 'default.png', 'cover.png'];
 
+            // ATENÇÃO: promo/ foi REMOVIDA desta lista intencionalmente.
+            // Os arquivos de promo são gerenciados pelo módulo Publicidade.
             $pastas = [
                 'music/'        => $baseDir . 'music/',
                 'music/covers/' => $baseDir . 'music/covers/',
-                'promo/'        => $baseDir . 'promo/',
             ];
 
             foreach ($pastas as $prefixo => $caminhoAbsoluto) {
                 if (!is_dir($caminhoAbsoluto)) continue;
 
+                // Busca apenas extensões de mídia reconhecidas (não pega .encrypted etc.)
                 $arquivos = glob(
-                    $caminhoAbsoluto . '{*.mp3,*.jpg,*.jpeg,*.png,*.gif,*.webp}',
+                    $caminhoAbsoluto . '{*.mp3,*.wav,*.ogg,*.jpg,*.jpeg,*.png,*.gif,*.webp}',
                     GLOB_BRACE
                 ) ?: [];
 
                 foreach ($arquivos as $arquivo) {
                     $nomeBase = basename($arquivo);
 
-                    // Normaliza o caminho do arquivo físico da mesma forma
                     $absNormalizado = rtrim(
                         str_replace('\\', '/', $arquivo),
                         '/'

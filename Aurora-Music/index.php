@@ -40,15 +40,6 @@ try {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Aurora Music - Sua Plataforma Musical</title>
 
-<!-- Trava o botão Voltar: impede sair do index pelo histórico -->
-<script>
-    const cleanUrl = window.location.origin + window.location.pathname;
-    history.replaceState(null, '', cleanUrl);
-    window.addEventListener('popstate', function() {
-        history.pushState(null, '', cleanUrl);
-    });
-</script>
-
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/login.css">
 <link rel="stylesheet" href="assets/css/whatsapp.css">
@@ -165,24 +156,33 @@ if (!empty($todasMusicas)):
         $caminho  = __DIR__ . '/music/' . $arquivo;
         if (!file_exists($caminho)) continue;
         $temMusica = true;
-        $artista   = '';
-        if (!empty($musica['artista'])) {
-            $artista = $musica['artista'];
-        } elseif (strpos($musica['nome_exibicao'], ' - ') !== false) {
-            $partes  = explode(' - ', $musica['nome_exibicao'], 2);
-            $artista = trim($partes[0]);
+
+        // Resolve artista: prioriza campo 'artista' do banco,
+        // só usa fallback do nome se for realmente vazio ou "Artista Desconhecido"
+        $artista = trim($musica['artista'] ?? '');
+        if ($artista === '' || strtolower($artista) === 'artista desconhecido') {
+            // Tenta extrair do nome de exibição no padrão "Artista - Título"
+            if (strpos($musica['nome_exibicao'], ' - ') !== false) {
+                $partes  = explode(' - ', $musica['nome_exibicao'], 2);
+                $artista = trim($partes[0]);
+            } else {
+                $artista = '';
+            }
         }
-        $cover = $musica['caminho_imagem'] ?? '';
+
+        $cover = $musica['caminho_imagem'] ?? 'assets/images/cover.png';
 ?>
        <li class="playlist-item"
     data-src="music/<?= htmlspecialchars($arquivo) ?>"
     data-display="<?= htmlspecialchars($musica['nome_exibicao']) ?>"
-    data-artist="<?= htmlspecialchars($musica['artista']) ?>" 
-    data-cover="<?= htmlspecialchars($musica['caminho_imagem'] ?? 'assets/images/cover.png') ?>">
+    data-artist="<?= htmlspecialchars($artista) ?>"
+    data-cover="<?= htmlspecialchars($cover ?: 'assets/images/cover.png') ?>">
   <div class="item-icon"><i class="bx bx-play-circle"></i></div>
   <div class="item-text">
     <span class="item-title"><?= htmlspecialchars($musica['nome_exibicao']) ?></span>
-    <small class="item-artist"><?= htmlspecialchars($musica['artista']) ?></small>
+    <?php if ($artista !== ''): ?>
+    <small class="item-artist"><?= htmlspecialchars($artista) ?></small>
+    <?php endif; ?>
   </div>
 </li>
 <?php endforeach; endif; ?>
