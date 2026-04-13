@@ -231,31 +231,37 @@ document.addEventListener("DOMContentLoaded", () => {
       loadTrack(nextIdx, true);
     }
   }
-
-  function playPromo(resumeIdx) {
-    isPlayingAd = true;
-    const randomPromo = promoFiles[Math.floor(Math.random() * promoFiles.length)];
-
-    trackName.textContent  = "📢 Publicidade";
-    artistName.textContent = "Aurora Music";
-    albumCover.src         = "assets/images/promo-cover.png";
-    albumCover.style.animationPlayState = "paused";
-
-    playBtn.style.opacity      = "0.5";
-    playBtn.style.pointerEvents = "none";
-
-    audio.src = randomPromo;
-    audio.play();
-
-    const onAdEnd = () => {
-      audio.removeEventListener("ended", onAdEnd);
-      isPlayingAd = false;
-      playBtn.style.opacity       = "1";
-      playBtn.style.pointerEvents = "auto";
-      loadTrack(resumeIdx, true);
-    };
-    audio.addEventListener("ended", onAdEnd);
+function playPromo(resumeIdx) {
+  if (promoFiles.length === 0) {
+    loadTrack(resumeIdx, true);
+    return;
   }
+
+  isPlayingAd = true;
+  // Sorteia um arquivo da lista de promos carregada do servidor
+  const randomPromo = promoFiles[Math.floor(Math.random() * promoFiles.length)];
+
+  trackName.textContent  = "📢 Publicidade";
+  artistName.textContent = "Aurora Music";
+  albumCover.src         = "assets/images/promo-cover.png"; 
+
+  playBtn.style.opacity      = "0.5";
+  playBtn.style.pointerEvents = "none";
+
+  // IMPORTANTE: Adiciona um cache buster para garantir que o browser não ignore o arquivo
+  audio.src = randomPromo + "?t=" + new Date().getTime();
+  audio.play();
+
+  const onAdEnd = () => {
+    audio.removeEventListener("ended", onAdEnd);
+    isPlayingAd = false;
+    playBtn.style.opacity       = "1";
+    playBtn.style.pointerEvents = "auto";
+    loadTrack(resumeIdx, true);
+  };
+  audio.removeEventListener("ended", onAdEnd); // Garante que não haja múltiplos listeners
+  audio.addEventListener("ended", onAdEnd);
+}
 
   /* ── Handlers de Interface ───────────────────────────────── */
   playBtn.addEventListener("click", () => {
